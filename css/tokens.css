@@ -1,0 +1,153 @@
+/*
+ * 全站设计变量（Design Tokens）
+ * 修改这里可以统一调整颜色、字体、间距、动画速度等基础风格。
+ * 具体板块的排版仍由 styles.css 管理。
+ */
+:root {
+  /*
+   * ==================== 常用视觉参数快速调整区 ====================
+   * 后续改视觉时优先修改本区，不必在 styles.css 中逐行寻找数字。
+   * 色彩和字体的详细变量紧接在本区下方。
+   */
+
+  /* 页面尺寸：正文最大宽度、正文占视口宽度（88vw 约等于两侧各留 6vw）、导航高度 */
+  --layout-content-max: 78rem;
+  --layout-content-width: 88vw;
+  --layout-header-height: 4.75rem;
+  --layout-header-height-mobile: 4.125rem;
+
+  /* 导航文字与时钟字号：单位 rem，分别控制栏目链接和设置图标左侧时间。 */
+  --text-nav: clamp(.84rem, .82vw, .98rem);
+  --text-header-clock: .78rem;
+
+  /* 地图模块固定高度：桌面端地图与介绍同高；手机端上下排列后分别控制 */
+  --layout-map-panel-height: 36rem;
+  --layout-map-height-mobile: 25.625rem;
+  --layout-site-panel-height-mobile: 34rem;
+
+  /* 3D 牌具展厅尺寸：桌面场景高度、手机场景高度和右侧展签宽度。 */
+  --layout-product-3d-height: 42rem;
+  --layout-product-3d-height-mobile: 31rem;
+  --layout-product-3d-caption-width: 22rem;
+
+  /* 栏目留白：控制各大栏目上下空间，数字越大页面越舒展 */
+  --layout-section-space: 8.5rem;
+  --layout-section-space-mobile: 5.5rem;
+
+  /* 栏目进退场动画：进入稍慢，退出稍快，位移控制上下滑动距离 */
+  --motion-reveal-enter: 1100ms;
+  --motion-reveal-exit: 900ms;
+  --motion-reveal-distance: 32px;
+  --motion-child-enter: 900ms;
+  --motion-child-distance: 24px;
+  --motion-stagger-step: 80ms;
+
+  /* 常用装饰参数：背景微尘透明度、卡片描边高亮时间、首屏文物漂浮速度 */
+  --effect-dust-opacity: 0.68;
+  --effect-search-highlight-duration: 1800ms;
+  --effect-hero-drift-duration: 8s;
+  --effect-hero-small-drift-duration: 7s;
+
+  /* 局部动效速度：卡片倾斜的角度、透视和抬升由 JavaScript 根据鼠标位置计算 */
+  --motion-ripple: 600ms;
+  --motion-card-hover: 350ms;
+  --motion-header-tool-hover: 180ms;
+  --motion-settings-enter: 800ms;
+  --motion-settings-exit: 320ms;
+  --motion-settings-reveal-start: 100%;
+  --motion-search-enter: 600ms;
+  --motion-search-exit: 260ms;
+  --motion-search-travel-y: 1.5rem;
+  --motion-search-scale-from: .97;
+  --motion-filter-state: 250ms;
+  --motion-scroll-knot: 400ms;
+
+  /* 用户设置运行时变量：由设置抽屉即时更新，不建议手动修改。 */
+  --reader-font-size: 0.9rem;
+  --reader-line-height: 1.8;
+  --user-motion-scale: 0.6;
+
+  /* 页面纸张底色、正文颜色和次要文字颜色 */
+  --color-paper: oklch(91% 0.018 82);
+  --color-paper-soft: oklch(94% 0.014 82);
+  --color-paper-deep: oklch(86% 0.024 78);
+  --color-paper-creative: var(--color-paper-soft);
+  --color-ink: oklch(24% 0.012 70);
+  --color-ink-muted: oklch(49% 0.015 70);
+
+  /* 朱砂与印章色：用于按钮、强调文字、印章和交互反馈 */
+  --color-accent: oklch(48% 0.14 29);
+  --color-accent-dark: oklch(36% 0.11 29);
+  --color-cinnabar-soft: rgba(168, 51, 42, 0.12);
+
+  /* 澄泥、陶土、竹简与丝帛色：用于文物和手卷场景 */
+  --color-clay: oklch(53% 0.09 43);
+  --color-clay-soft: oklch(74% 0.055 62);
+
+  /* 青铜和深色展区：主要用于地图及深色背景 */
+  --color-bronze: oklch(46% 0.045 160);
+  --color-bronze-dark: oklch(30% 0.035 160);
+  --color-dark-surface: oklch(29% 0.032 160);
+  --color-dark-surface-soft: oklch(36% 0.038 160);
+  --color-dark-ink: oklch(94% 0.014 82);
+  --color-dark-muted: oklch(76% 0.018 120);
+  --color-map-marker: oklch(82% 0.055 72);
+  --color-rule: oklch(50% 0.02 75 / 20%);
+  --color-rule-strong: oklch(42% 0.04 45 / 35%);
+  --color-focus: oklch(54% 0.16 29);
+  --color-accent-ink: oklch(96% 0.012 82);
+  --color-shadow: oklch(25% 0.02 45 / 25%);
+  --color-shadow-soft: oklch(25% 0.02 45 / 18%);
+
+  /* 数字手卷专用颜色 */
+  --color-scroll-paper: oklch(88% 0.035 77);
+  --color-scroll-paper-light: oklch(93% 0.024 79);
+  --color-scroll-fiber: oklch(54% 0.025 72 / 18%);
+  --color-scroll-edge: oklch(46% 0.045 53);
+  --color-scroll-cord: oklch(38% 0.055 42);
+
+  /* 字体分工：榜书用于大标题，宋体用于展陈标题，黑体用于界面正文 */
+  --font-monument: "Sanji Bangshu Web", "三极榜书", "STKaiti", KaiTi, serif;
+  --font-display: "Noto Serif SC", "Songti SC", SimSun, serif;
+  --font-literary: "Noto Serif SC", "Songti SC", SimSun, serif;
+  --font-body: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  /* 统一间距阶梯：优先使用这些变量，避免各处随意填写尺寸 */
+  --space-3xs: .25rem;
+  --space-2xs: .5rem;
+  --space-xs: .75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  /* 统一字号阶梯 */
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-md: 1.05rem;
+  --text-lg: 1.4rem;
+  --text-xl: 1.9rem;
+  --text-2xl: 2.7rem;
+  --text-display: clamp(4.5rem, 9vw, 8.75rem);
+  /* 通用动画节奏：按钮等小交互使用，不控制栏目加载动画 */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --ease-stamp: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-short: 180ms;
+  --dur-medium: 650ms;
+  --dur-long: 1100ms;
+  /* 边框和圆角。当前展陈风格使用直角卡片。 */
+  --rule-hairline: 1px;
+
+  /* 旧样式使用的简短别名统一映射到上面的设计变量，避免维护两套色值。 */
+  --paper: var(--color-paper);
+  --ink: var(--color-ink);
+  --muted: var(--color-ink-muted);
+  --red: var(--color-accent);
+  --red-dark: var(--color-accent-dark);
+  --green: var(--color-bronze);
+  --green-dark: var(--color-bronze-dark);
+  --section-bg: var(--color-paper);
+  --line: var(--color-rule);
+  --serif: var(--font-display);
+  --sans: var(--font-body);
+}
