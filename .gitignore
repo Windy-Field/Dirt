@@ -1,0 +1,26 @@
+# 本地密钥与运行日志
+.env
+.env.*
+!.env.example
+*.log
+
+# 依赖与临时目录
+node_modules/
+Rubbish/
+
+# 编辑器和本地设计记录
+.claude/
+.hallmark/
+.vscode/
+.idea/
+
+# 交付压缩包和历史版本
+dist/
+
+# 研究原始资料与视觉验收截图不参与网站运行
+docs/research/
+docs/qa/
+
+# 操作系统生成文件
+Thumbs.db
+.DS_Store

@@ -1,0 +1,9 @@
+Rubbish/
+.git/
+.gitignore
+*.log
+.env
+docs/
+dist/
+.claude/
+.hallmark/
