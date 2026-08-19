@@ -6,6 +6,8 @@
   let courses = [];
   let visibleSites = [];
   let selectedImages = [];
+  // 一轮问答只维护这一份状态，避免题号、分数和按钮阶段彼此不同步。
+  const quizState = { questions: [], index: 0, score: 0, scorePerQuestion: 10, answered: false };
   let aiSessionId = window.sessionStorage.getItem("nimeng-ai-session") || "";
 
   /*
@@ -282,6 +284,165 @@
     grid.innerHTML = items.map((item, index) => `<article class="creative-card creative-${index + 1}"><div class="creative-art"><span>${item.mark}</span><i>${String(index + 1).padStart(2, "0")}</i></div><div><small>${item.category}</small><h3>${item.name}</h3><p>${item.description}</p></div></article>`).join("");
   }
 
+  const quizOptionKeys = ["A", "B", "C", "D"];
+
+  function shuffleQuizOptions(question) {
+    // value 保留数据库原答案键；displayKey 是本轮打乱后显示给用户的字母。
+    const options = quizOptionKeys.map((originalKey) => ({ originalKey, text: question[`option${originalKey}`] }));
+    for (let index = options.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [options[index], options[randomIndex]] = [options[randomIndex], options[index]];
+    }
+    return options.map((option, index) => ({ ...option, displayKey: quizOptionKeys[index] }));
+  }
+
+  // 任一选项超过该长度时改成四行单列，避免长句被两列布局压得难以阅读。
+  function hasLongQuizOption(question) {
+    return quizOptionKeys.some((key) => String(question[`option${key}`] || "").length > 28);
+  }
+
+  function getQuizTitle(score) {
+    if (score === 100) return "金石通识者";
+    if (score >= 80) return "封泥学士";
+    if (score >= 60) return "泥印新秀";
+    return "澄泥初识";
+  }
+
+  function updateQuizProgress() {
+    const total = quizState.questions.length;
+    const completed = Math.min(quizState.index + (quizState.answered ? 1 : 0), total);
+    const ratio = total ? completed / total : 0;
+    $("#quizProgressCount").textContent = `${completed} / ${total}`;
+    $("#quizProgressBar").style.transform = `scaleX(${ratio})`;
+    $("#quizScore").textContent = String(quizState.score);
+  }
+
+  function renderCurrentQuizQuestion() {
+    const list = $("#quizList");
+    list.classList.remove("is-result");
+    list.setAttribute("aria-busy", "false");
+    const question = quizState.questions[quizState.index];
+    if (!question) return renderQuizResult();
+    list.innerHTML = `
+      <fieldset class="quiz-question" data-question-id="${question.id}">
+        <legend class="sr-only">第 ${quizState.index + 1} 题：${escapeHtml(question.question)}</legend>
+        <div class="quiz-question-title"><span class="quiz-question-number">${String(quizState.index + 1).padStart(2, "0")}</span><span class="quiz-difficulty" data-difficulty="${escapeHtml(question.difficulty || "简单")}">${escapeHtml(question.difficulty || "简单")}</span><h3>${escapeHtml(question.question)}</h3></div>
+        <div class="quiz-options${question.hasLongOption ? " has-long-option" : ""}">
+          ${question.displayOptions.map((option) => `<label><input type="radio" name="quiz-${question.id}" value="${option.originalKey}" data-display-key="${option.displayKey}"><span class="quiz-option-key">${option.displayKey}</span><span>${escapeHtml(option.text)}</span></label>`).join("")}
+        </div>
+        <div class="quiz-explanation" hidden></div>
+      </fieldset>
+    `;
+    quizState.answered = false;
+    $("#quizFeedback").textContent = "选择一个答案，然后确认。";
+    $("#submitQuiz").disabled = true;
+    $("#submitQuiz").firstChild.textContent = "确认答案 ";
+    const resetButton = $("#resetQuiz");
+    const actions = $(".quiz-actions");
+    if (resetButton && actions && resetButton.parentElement !== actions) actions.appendChild(resetButton);
+    resetButton.hidden = false;
+    updateQuizProgress();
+  }
+
+  function renderQuizResult() {
+    const score = quizState.score;
+    const title = getQuizTitle(score);
+    quizState.answered = true;
+    const correctCount = score / quizState.scorePerQuestion;
+    const list = $("#quizList");
+    list.classList.add("is-result");
+    list.innerHTML = `<div class="quiz-result"><span>本轮称号</span><h3>${title}</h3><strong>${score}<small>分</small></strong><p>共答对 ${correctCount} / ${quizState.questions.length} 题。每一次辨认，都是走近齐鲁金石的一步。</p><button class="button quiz-share-button" id="shareQuiz" type="button">分享成绩 <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 8l5-5m0 0v4m0-4h-4"/><path d="M20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5"/></svg></button></div>`;
+    $("#quizFeedback").textContent = "";
+    $("#submitQuiz").hidden = true;
+    const resetButton = $("#resetQuiz");
+    resetButton.hidden = false;
+    $(".quiz-result")?.appendChild(resetButton);
+    updateQuizProgress();
+  }
+
+  function startQuiz(round) {
+    quizState.questions = round.questions.map((question) => ({
+      ...question,
+      hasLongOption: hasLongQuizOption(question),
+      displayOptions: shuffleQuizOptions(question)
+    }));
+    quizState.index = 0;
+    quizState.score = 0;
+    quizState.scorePerQuestion = round.scorePerQuestion;
+    quizState.answered = false;
+    $("#submitQuiz").hidden = false;
+    renderCurrentQuizQuestion();
+  }
+
+  async function loadQuiz() {
+    const list = $("#quizList");
+    list.setAttribute("aria-busy", "true");
+    list.innerHTML = '<p class="quiz-loading">正在随机抽取十道题……</p>';
+    try {
+      startQuiz(await ApiService.startQuiz());
+    } catch (error) {
+      list.setAttribute("aria-busy", "false");
+      list.innerHTML = `<div class="empty-state"><strong>题目加载失败</strong><p>${escapeHtml(error.message || "请稍后重试")}</p></div>`;
+      $("#quizFeedback").textContent = "题库暂时无法访问。";
+      updateQuizProgress();
+    }
+  }
+
+  async function submitQuiz(event) {
+    event.preventDefault();
+    if (!quizState.questions.length) return;
+    if (quizState.answered) {
+      quizState.index += 1;
+      if (quizState.index >= quizState.questions.length) renderQuizResult();
+      else renderCurrentQuizQuestion();
+      return;
+    }
+
+    const question = quizState.questions[quizState.index];
+    const selected = $(`input[name="quiz-${question.id}"]:checked`);
+    if (!selected) return;
+    const submitButton = $("#submitQuiz");
+    submitButton.disabled = true;
+    submitButton.firstChild.textContent = "正在判题 ";
+    $("#quizForm").setAttribute("aria-busy", "true");
+    try {
+      const item = await ApiService.answerQuiz(question.id, selected.value);
+      quizState.answered = true;
+      quizState.score += item.earnedScore;
+      const fieldset = $(`[data-question-id="${item.questionId}"]`);
+      fieldset.classList.add(item.correct ? "is-correct" : "is-wrong");
+      fieldset.querySelectorAll("input").forEach((input) => { input.disabled = true; });
+      const correctInput = fieldset.querySelector(`input[value="${item.correctAnswer}"]`);
+      const correctDisplayKey = correctInput?.dataset.displayKey || item.correctAnswer;
+      const correctLabel = correctInput?.closest("label");
+      correctLabel?.classList.add("is-answer");
+      const explanation = fieldset.querySelector(".quiz-explanation");
+      explanation.hidden = false;
+      explanation.innerHTML = `<strong>${item.correct ? `回答正确，答案 ${escapeHtml(correctDisplayKey)}，本题获得 ${item.earnedScore} 分` : `回答错误，正确答案是 ${escapeHtml(correctDisplayKey)}`}</strong><p>${escapeHtml(item.explanation)}</p>`;
+      const questionTitle = fieldset.querySelector(".quiz-question-title h3");
+      if (questionTitle && !questionTitle.querySelector(".quiz-analysis-hint")) {
+        questionTitle.insertAdjacentHTML("beforeend", '<span class="quiz-analysis-hint">【下滑查看详细解析】</span>');
+      }
+      $("#quizFeedback").textContent = item.correct ? `当前得分 ${quizState.score} 分。` : `当前得分 ${quizState.score} 分，看看解析再继续。`;
+      submitButton.firstChild.textContent = quizState.index === quizState.questions.length - 1 ? "查看结果 " : "下一题 ";
+      submitButton.disabled = false;
+      updateQuizProgress();
+    } catch (error) {
+      $("#quizFeedback").textContent = error.message || "提交失败，请稍后重试。";
+      submitButton.firstChild.textContent = "确认答案 ";
+      submitButton.disabled = false;
+    } finally {
+      $("#quizForm").setAttribute("aria-busy", "false");
+    }
+  }
+
+  async function resetQuiz() {
+    const resetButton = $("#resetQuiz");
+    const actions = $(".quiz-actions");
+    if (resetButton && actions) actions.appendChild(resetButton);
+    await loadQuiz();
+  }
+
   // 将 ppt-knowledge.js 中整理的研究发现写入页面。
   function renderSourceFindings() {
     const knowledge = getKnowledge();
@@ -289,21 +450,31 @@
     $("#sourceFindings").innerHTML = knowledge.findings.map((item, index) => `<article><span>${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p></article>`).join("");
   }
 
-  // 生成 45 区县资料索引；传入关键词时同时完成前端筛选。
-  function renderSourceIndex(keyword = "") {
-    const knowledge = getKnowledge();
-    if (!knowledge || !knowledge.sites) return;
+  // 主页面精选与弹窗完整列表共用同一份卡片模板。
+  function sourceCardTemplate(site) {
+    return `<article data-source-card="${site.id}" tabindex="-1"><div><span>${escapeHtml(site.city)}</span><strong>${escapeHtml(site.seals.slice(0, 3).join(" · "))}${site.seals.length > 3 ? ` 等 ${site.count} 条` : ""}</strong></div><p>${escapeHtml(site.period)}<br>${escapeHtml(site.admin)}</p><a href="#map" data-source-site="${site.id}">在地图查看 <b aria-hidden="true">→</b></a></article>`;
+  }
+
+  function renderSourceCards(root, items) {
+    root.innerHTML = items.length
+      ? items.map(sourceCardTemplate).join("")
+      : '<p class="source-empty">没有匹配资料，请尝试现代区县、古地名、印文或郡国名称。</p>';
+  }
+
+  // 页面只展示前三处；完整筛选结果只在弹窗中渲染。
+  function renderSourcePreview() {
+    const sites = getKnowledge()?.sites || [];
+    renderSourceCards($("#sourceIndex"), sites.slice(0, 3));
+    $("#sourceSearchFeedback").textContent = `显示精选 ${Math.min(3, sites.length)} 处区县资料`;
+    $("#openSourceIndex").firstChild.textContent = `查看其余 ${Math.max(0, sites.length - 3)} 处资料 `;
+  }
+
+  function renderSourceDialogIndex(keyword = "") {
     const query = keyword.trim().toLowerCase();
     const items = findKnowledgeSites(query);
-    $("#sourceIndex").innerHTML = items.length ? items.map((site) => `<article data-source-card="${site.id}" tabindex="-1"><div><span>${escapeHtml(site.city)}</span><strong>${escapeHtml(site.seals.slice(0, 3).join(" · "))}${site.seals.length > 3 ? ` 等 ${site.count} 条` : ""}</strong></div><p>${escapeHtml(site.period)}<br>${escapeHtml(site.admin)}</p><a href="#map" data-source-site="${site.id}">在地图查看 <b aria-hidden="true">→</b></a></article>`).join("") : '<p class="source-empty">没有匹配资料，请尝试现代区县、古地名、印文或郡国名称。</p>';
-
-    // 图录内容、清除按钮和结果数量必须同步更新，避免界面状态彼此矛盾。
-    const clearButton = $("#clearSourceSearch");
-    const feedback = $("#sourceSearchFeedback");
-    if (clearButton) clearButton.hidden = !query;
-    if (feedback) feedback.textContent = query
-      ? `找到 ${items.length} 处匹配资料`
-      : `显示全部 ${knowledge.sites.length} 处区县资料`;
+    renderSourceCards($("#sourceDialogIndex"), items);
+    $("#clearSourceDialogSearch").hidden = !query;
+    $("#sourceDialogFeedback").textContent = query ? `找到 ${items.length} 处匹配资料` : `显示全部 ${items.length} 处区县资料`;
   }
 
   // ==================== 03. 数字手卷交互 ====================
@@ -416,18 +587,128 @@
     renderRelics(relics.items);
     renderCourses(courseItems);
     renderCreativeWorks(creativeItems);
+    await loadQuiz();
     renderSourceFindings();
-    renderSourceIndex();
+    renderSourcePreview();
     initScrollStory();
-    const aiStatus = await AiService.getStatus();
-    const statusElement = $("#aiStatus");
-    statusElement.classList.toggle("disconnected", !aiStatus.connected);
-    statusElement.innerHTML = `<i></i> ${aiStatus.connected ? "AI助手已连接" : "AI服务未连接"}`;
+    renderAiStatus(await AiService.getStatus());
   }
 
   // ==================== 05. 导航、地图筛选和课程事件 ====================
   $("#menuToggle").addEventListener("click", () => { const open = $("#mainNav").classList.toggle("open"); $("#menuToggle").setAttribute("aria-expanded", String(open)); });
-  $$("#mainNav a").forEach((link) => link.addEventListener("click", () => $("#mainNav").classList.remove("open")));
+  function getLayoutTop(element) {
+    let top = 0;
+    for (let current = element; current; current = current.offsetParent) top += current.offsetTop;
+    return top;
+  }
+
+  // 使用不受栏目进退场 transform 影响的布局坐标，保证向上、向下跳转停在同一位置。
+  $$("#mainNav a").forEach((link) => link.addEventListener("click", (event) => {
+    const target = $(link.getAttribute("href"));
+    if (!target) return;
+    event.preventDefault();
+    $("#mainNav").classList.remove("open");
+    $("#menuToggle").setAttribute("aria-expanded", "false");
+    const anchorOffset = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    window.scrollTo({ top: Math.max(0, getLayoutTop(target) - anchorOffset), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    window.history.pushState(null, "", link.getAttribute("href"));
+  }));
+  $("#quizForm").addEventListener("change", (event) => {
+    if (!quizState.answered && event.target.matches("input[type=radio]")) $("#submitQuiz").disabled = false;
+  });
+  $("#quizForm").addEventListener("submit", submitQuiz);
+  $("#resetQuiz").addEventListener("click", resetQuiz);
+
+  // 成绩分享只复制当前网址，不上传成绩或任何个人数据。
+  const shareDialog = $("#shareDialog");
+  const copyShareButton = $("#copyShareUrl");
+  let sharePanelAnimation = null;
+  let copyFeedbackTimer = null;
+
+  // 搜索与分享弹窗共用同一组位移、缩放、时长和缓动参数。
+  function openModalAnimation(panel) {
+    return runElementAnimation(panel, [
+      { opacity: 0, transform: `translateY(${readCssValue("--motion-search-travel-y")}) scale(${readCssValue("--motion-search-scale-from")})` },
+      { opacity: 1, transform: "translateY(0) scale(1)" }
+    ], "--motion-search-enter", "--ease-out");
+  }
+
+  function closeModalAnimation(panel) {
+    return runElementAnimation(panel, [
+      { opacity: 1, transform: "translateY(0) scale(1)" },
+      { opacity: 0, transform: `translateY(${readCssValue("--motion-search-travel-y")}) scale(${readCssValue("--motion-search-scale-from")})` }
+    ], "--motion-search-exit", "--ease-in-out");
+  }
+
+  async function closeShareDialog() {
+    if (!shareDialog?.open || shareDialog.classList.contains("is-closing")) return;
+    shareDialog.classList.add("is-closing");
+    sharePanelAnimation = closeModalAnimation(shareDialog.querySelector(".share-panel"));
+    if (sharePanelAnimation) {
+      try { await sharePanelAnimation.finished; } catch (_) { return; }
+    }
+    shareDialog.classList.remove("is-closing");
+    shareDialog.close();
+  }
+
+  function openShareDialog() {
+    const score = quizState.score;
+    const correctCount = score / quizState.scorePerQuestion;
+    $("#shareTitle").textContent = getQuizTitle(score);
+    $("#shareSummary").textContent = `本轮得分 ${score} 分，答对 ${correctCount} / ${quizState.questions.length} 题。`;
+    $("#shareUrl").textContent = window.location.href;
+    $("#shareFeedback").textContent = "分享网址后，朋友可以打开同一个趣味问答页面。";
+    copyShareButton.textContent = "复制当前网址";
+    copyShareButton.classList.remove("is-copied");
+    window.clearTimeout(copyFeedbackTimer);
+    shareDialog.classList.remove("is-closing");
+    shareDialog.showModal();
+    sharePanelAnimation = openModalAnimation(shareDialog.querySelector(".share-panel"));
+    copyShareButton.focus();
+  }
+
+  $("#quizList")?.addEventListener("click", (event) => {
+    if (event.target.closest("#shareQuiz")) openShareDialog();
+  });
+
+  $("#closeShare")?.addEventListener("click", closeShareDialog);
+  shareDialog?.addEventListener("click", (event) => { if (event.target === shareDialog) closeShareDialog(); });
+  shareDialog?.addEventListener("cancel", (event) => { event.preventDefault(); closeShareDialog(); });
+  shareDialog?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") { event.preventDefault(); closeShareDialog(); }
+  });
+  shareDialog?.addEventListener("close", () => $("#shareQuiz")?.focus());
+
+  copyShareButton?.addEventListener("click", async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+      else {
+        const input = document.createElement("textarea");
+        input.value = url;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+      }
+      window.clearTimeout(copyFeedbackTimer);
+      copyShareButton.classList.remove("is-copied");
+      // 强制重新触发状态样式，连续复制时也能获得清晰反馈。
+      void copyShareButton.offsetWidth;
+      copyShareButton.classList.add("is-copied");
+      copyShareButton.textContent = "已复制";
+      $("#shareFeedback").textContent = "网址已复制，可以发送给朋友了。";
+      copyFeedbackTimer = window.setTimeout(() => {
+        copyShareButton.classList.remove("is-copied");
+        copyShareButton.textContent = "复制当前网址";
+        $("#shareFeedback").textContent = "可再次点击复制当前网址。";
+      }, 1600);
+    } catch {
+      $("#shareFeedback").textContent = "复制失败，请手动选择上方网址。";
+    }
+  });
 
   // 导航栏时钟：使用本机时间，每秒检查一次，显示为 24 小时制 HH:mm。
   const headerClock = $("#headerClock");
@@ -579,22 +860,49 @@
     if (index >= 0) updateSitePanel(visibleSites[index], index);
   });
   $("#courseList").addEventListener("click", (event) => { const button = event.target.closest("[data-course-id]"); if (button) selectCourse(button.dataset.courseId); });
-  const sourceSearchInput = $("#sourceSearch");
-  const clearSourceSearchButton = $("#clearSourceSearch");
-  sourceSearchInput.addEventListener("input", (event) => renderSourceIndex(event.target.value));
+  const sourceDialog = $("#sourceDialog");
+  const sourceDialogPanel = sourceDialog?.querySelector(".source-dialog-panel");
+  const sourceDialogSearch = $("#sourceDialogSearch");
+  const clearSourceDialogSearch = $("#clearSourceDialogSearch");
 
-  // 不依赖浏览器原生清除图标：清除后恢复全部图录、保留焦点并给出视觉反馈。
-  clearSourceSearchButton?.addEventListener("click", () => {
-    sourceSearchInput.value = "";
-    renderSourceIndex();
-    replayClearFeedback(sourceSearchInput, ".source-search-wrap");
-    showToast("已清除图录筛选，恢复全部 45 处资料");
-  });
-  $("#sourceIndex").addEventListener("click", (event) => {
+  async function closeSourceDialog() {
+    if (!sourceDialog?.open || sourceDialog.classList.contains("is-closing")) return;
+    sourceDialog.classList.add("is-closing");
+    const animation = closeModalAnimation(sourceDialogPanel);
+    if (animation) {
+      try { await animation.finished; } catch (_) { return; }
+    }
+    sourceDialog.classList.remove("is-closing");
+    sourceDialog.close();
+  }
+
+  // 主列表和完整弹窗都通过 data-source-site 跳转地图地点。
+  function handleSourceSiteClick(event) {
     const link = event.target.closest("[data-source-site]");
     if (!link) return;
     const marker = $(`[data-site-id="${link.dataset.sourceSite}"]`);
     if (marker) window.setTimeout(() => marker.click(), 50);
+    if (sourceDialog?.open) closeSourceDialog();
+  }
+  $("#sourceIndex").addEventListener("click", handleSourceSiteClick);
+  $("#sourceDialogIndex").addEventListener("click", handleSourceSiteClick);
+
+  // 完整图录弹窗只在打开后渲染，减少首页首次加载的 DOM 数量。
+  $("#openSourceIndex").addEventListener("click", () => {
+    renderSourceDialogIndex();
+    sourceDialog.classList.remove("is-closing");
+    sourceDialog.showModal();
+    openModalAnimation(sourceDialogPanel);
+    sourceDialogSearch.focus();
+  });
+  $("#closeSourceIndex").addEventListener("click", () => closeSourceDialog());
+  sourceDialog.addEventListener("click", (event) => { if (event.target === sourceDialog) closeSourceDialog(); });
+  sourceDialog.addEventListener("cancel", (event) => { event.preventDefault(); closeSourceDialog(); });
+  sourceDialogSearch.addEventListener("input", (event) => renderSourceDialogIndex(event.target.value));
+  clearSourceDialogSearch.addEventListener("click", () => {
+    sourceDialogSearch.value = "";
+    renderSourceDialogIndex();
+    replayClearFeedback(sourceDialogSearch, ".source-search-wrap");
   });
   $("#playCourse").addEventListener("click", () => { const url = $("#coursePlayer").dataset.videoUrl; if (url) window.open(url, "_blank", "noopener"); else showToast("课程视频接口已预留，替换 videoUrl 后即可播放"); });
 
@@ -614,18 +922,12 @@
   // 所有关闭方式共用同一个函数，防止关闭按钮、遮罩和结果点击行为不一致。
   function openSearchAnimation() {
     const box = searchDialog?.querySelector(".search-box");
-    searchBoxAnimation = runElementAnimation(box, [
-      { opacity: 0, transform: `translateY(${readCssValue("--motion-search-travel-y")}) scale(${readCssValue("--motion-search-scale-from")})` },
-      { opacity: 1, transform: "translateY(0) scale(1)" }
-    ], "--motion-search-enter", "--ease-out");
+    searchBoxAnimation = openModalAnimation(box);
   }
 
   async function closeSearchAnimation() {
     const box = searchDialog?.querySelector(".search-box");
-    searchBoxAnimation = runElementAnimation(box, [
-      { opacity: 1, transform: "translateY(0) scale(1)" },
-      { opacity: 0, transform: `translateY(${readCssValue("--motion-search-travel-y")}) scale(${readCssValue("--motion-search-scale-from")})` }
-    ], "--motion-search-exit", "--ease-in-out");
+    searchBoxAnimation = closeModalAnimation(box);
     if (searchBoxAnimation) {
       try { await searchBoxAnimation.finished; } catch (_) { return false; }
     }
@@ -717,16 +1019,15 @@
     if (!site) return;
     closeSearchDialog();
 
-    // 恢复“全部”地图点位，避免目标点位因用户之前的筛选而不存在。
-    await applyMapFilter();
-    $("#sourceSearch").value = site.city;
-    renderSourceIndex(site.city);
-
+    // 搜索结果直接打开完整图录弹窗，并定位对应卡片。
+    renderSourceDialogIndex(site.city);
+    sourceDialog.classList.remove("is-closing");
+    sourceDialog.showModal();
+    openModalAnimation(sourceDialogPanel);
     window.setTimeout(() => {
-      const targetCard = $(`[data-source-card="${site.id}"]`);
-      const targetMarker = $(`[data-site-id="${site.id}"]`);
-      targetMarker?.click();
-      revealTarget(targetCard);
+      const targetCard = $(`#sourceDialogIndex [data-source-card="${site.id}"]`);
+      targetCard?.classList.add("search-target");
+      targetCard?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
       showToast(`已定位图录：${site.city} · ${site.seals[0]}`);
     }, 80);
   });
@@ -778,6 +1079,13 @@
       submitButton.disabled = false;
     }
   }
+  function renderAiStatus(status) {
+    const statusElement = $("#aiStatus");
+    if (!statusElement) return;
+    statusElement.classList.toggle("disconnected", !status.connected);
+    statusElement.innerHTML = `<i></i> ${status.connected ? "AI助手已连接" : "AI服务未连接"}`;
+  }
+  window.addEventListener("ai-status-change", (event) => renderAiStatus(event.detail || { connected: false }));
   $("#chatForm").addEventListener("submit", (event) => { event.preventDefault(); sendAiMessage($("#aiQuestion").value.trim()); });
   $$("[data-prompt]").forEach((button) => button.addEventListener("click", () => sendAiMessage(button.dataset.prompt)));
   $("#aiImage").addEventListener("change", () => {

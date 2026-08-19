@@ -21,11 +21,11 @@
   <canvas id="ambientCanvas" aria-hidden="true"></canvas>
 
   <!-- 顶部导航：固定在页面顶部，链接会跳到对应的 section。 -->
-  <header class="site-header" id="top">
-    <a class="brand" href="#top" aria-label="泥梦新韵首页">
+  <header class="site-header">
+    <div class="brand">
       <span class="brand-seal" aria-hidden="true">泥</span>
       <span><strong>泥梦新韵</strong><small>齐鲁封泥数字文化平台</small></span>
-    </a>
+    </div>
     <button class="menu-toggle" id="menuToggle" type="button" aria-label="打开导航" aria-expanded="false"><span></span><span></span><span></span></button>
     <nav class="main-nav" id="mainNav" aria-label="主导航">
       <a class="active" href="#research">文物调研</a>
@@ -37,6 +37,7 @@
       <a href="#courses">支教开源课程</a>
       <a href="#creative">封泥牌具</a>
       <a href="#ai-guide">AI吉祥物</a>
+      <a href="#quiz">趣味问答</a>
     </nav>
     <div class="header-actions">
       <button class="search-button" id="openSearch" type="button" aria-label="搜索封泥"><span aria-hidden="true">⌕</span><span>搜索</span></button>
@@ -51,7 +52,6 @@
     <!-- 首屏：项目名称、简介、数据概览和代表性封泥图片。 -->
     <section class="hero" aria-labelledby="heroTitle">
       <div class="hero-copy">
-        <p class="eyebrow">封泥文物传播与保护数字化实践</p>
         <h1 id="heroTitle" class="seal-title" aria-label="泥梦新韵"><span aria-hidden="true">泥</span><span aria-hidden="true">梦</span><span aria-hidden="true">新</span><span aria-hidden="true">韵</span></h1>
         <p class="hero-lead">从齐鲁大地的一方泥印出发，以调研建档、数字识读、开源课程与文创设计，让战国秦汉的封缄智慧与金石印蜕重新走进今天的生活。</p>
         <div class="hero-actions">
@@ -226,15 +226,10 @@
           <div class="source-findings" id="sourceFindings"></div>
           <div class="source-index-head">
             <div><h3>45区县金石图录索引</h3><p>输入现代区县、古地名、官印印文或行政归属进行精确筛选。</p></div>
-            <label for="sourceSearch">筛选资料
-              <span class="source-search-wrap">
-                <input id="sourceSearch" type="search" placeholder="例如：临淄、左尉、泰山郡" autocomplete="off">
-                <button class="source-search-clear" id="clearSourceSearch" type="button" aria-label="清除图录筛选" title="清除图录筛选" hidden>×</button>
-              </span>
-              <small class="source-search-feedback" id="sourceSearchFeedback" aria-live="polite">显示全部 45 处区县资料</small>
-            </label>
+            <p class="source-preview-note" id="sourceSearchFeedback" aria-live="polite">显示精选 3 处区县资料</p>
           </div>
           <div class="source-index" id="sourceIndex" aria-live="polite"></div>
+          <button class="source-index-more button" id="openSourceIndex" type="button">查看所有区县资料 <span aria-hidden="true">↗</span></button>
         </div>
       </div>
     </section>
@@ -310,6 +305,33 @@
         <p class="ai-disclaimer">AI回答与图片分析仅作辅助研学参考，学术定论请参考专业文博报告。</p>
       </div>
     </section>
+
+    <!-- 趣味问答：题目来自 MySQL；未连接数据库时使用本地示例题。 -->
+    <section class="quiz-section exhibit-section" id="quiz" data-reveal aria-labelledby="quizTitle">
+      <div class="section-shell">
+        <div class="section-heading split-heading">
+          <div><p class="eyebrow">趣味问答</p><h2 id="quizTitle">泥印里的知识，你记住了多少？</h2></div>
+          <p class="heading-note">每轮随机抽取十题，每题 10 分。看看你学会了多少吧！</p>
+        </div>
+        <div class="quiz-toolbar">
+          <div>
+            <strong id="quizProgressCount" aria-label="答题进度">0 / 0</strong>
+          </div>
+          <div class="quiz-progress" aria-hidden="true"><i id="quizProgressBar"></i></div>
+          <div class="quiz-score" aria-label="当前得分" aria-live="polite"><strong id="quizScore">0</strong><small>分</small></div>
+        </div>
+        <form class="quiz-form" id="quizForm" aria-describedby="quizFeedback">
+          <div class="quiz-list" id="quizList" aria-live="polite" aria-busy="true">
+            <p class="quiz-loading">正在准备题目……</p>
+          </div>
+          <p class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></p>
+          <div class="quiz-actions">
+            <button class="button primary" id="submitQuiz" type="submit" disabled>确认答案 <span aria-hidden="true">→</span></button>
+            <button class="button primary" id="resetQuiz" type="button">再来一轮 <span aria-hidden="true">↻</span></button>
+          </div>
+        </form>
+      </div>
+    </section>
   </main>
 
   <!-- 页脚：项目名称、常用栏目入口和版权说明。 -->
@@ -329,6 +351,7 @@
       <a href="#map">文化地图</a>
       <a href="#courses">开源课程</a>
       <a href="#ai-guide">AI导览</a>
+      <a href="#quiz">趣味问答</a>
     </div>
     <p class="copyright">© 2026 泥梦新韵 齐鲁封泥数字文化保护项目. 旨在传承弘扬中华优秀传统金石文化与古文字学.</p>
   </footer>
@@ -408,6 +431,41 @@
     </div>
   </dialog>
 
+  <!-- 成绩分享弹窗：展示本轮段位，并复制当前网页地址。 -->
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareTitle">
+    <div class="share-panel">
+      <button class="share-close" id="closeShare" type="button" aria-label="关闭成绩分享弹窗">×</button>
+      <p class="eyebrow">趣味问答成绩</p>
+      <div class="share-rank" aria-hidden="true"><span>段</span></div>
+      <p class="share-kicker">本轮段位</p>
+      <h2 id="shareTitle">澄泥初识</h2>
+      <p class="share-summary" id="shareSummary">本轮得分 0 分，答对 0 / 10 题。</p>
+      <div class="share-url-row">
+        <span class="share-url" id="shareUrl"></span>
+        <button class="share-copy" id="copyShareUrl" type="button">复制当前网址</button>
+      </div>
+      <p class="share-feedback" id="shareFeedback" role="status" aria-live="polite">分享网址后，朋友可以打开同一个趣味问答页面。</p>
+    </div>
+  </dialog>
+
+  <!-- 完整区县图录弹窗：主页面只展示前三条，全部资料在这里筛选。 -->
+  <dialog class="source-dialog" id="sourceDialog" aria-labelledby="sourceDialogTitle">
+    <div class="source-dialog-panel">
+      <button class="source-dialog-close" id="closeSourceIndex" type="button" aria-label="关闭区县图录">×</button>
+      <p class="eyebrow">资料索引</p>
+      <h2 id="sourceDialogTitle">45区县金石图录索引</h2>
+      <p class="source-dialog-lead">输入现代区县、古地名、官印印文或行政归属，查询完整图录。</p>
+      <label class="source-dialog-search" for="sourceDialogSearch">筛选资料
+        <span class="source-search-wrap">
+          <input id="sourceDialogSearch" type="search" placeholder="例如：临淄、左尉、泰山郡" autocomplete="off">
+          <button class="source-search-clear" id="clearSourceDialogSearch" type="button" aria-label="清除图录筛选" title="清除图录筛选" hidden>×</button>
+        </span>
+        <small class="source-search-feedback" id="sourceDialogFeedback" aria-live="polite">显示全部 45 处区县资料</small>
+      </label>
+      <div class="source-index source-dialog-index" id="sourceDialogIndex" aria-live="polite"></div>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!--
@@ -417,8 +475,8 @@
   <script src="./data/ppt-knowledge.js"></script>
   <script src="./data/mock-data.js"></script>
   <script src="./data/3d-products.js"></script>
-  <script src="./js/api.js"></script>
   <script src="./js/config.js"></script>
+  <script src="./js/api.js"></script>
   <script src="./js/ai-service.js"></script>
   <script src="./js/app.js"></script>
   <script src="./js/vendor/three.min.js"></script>

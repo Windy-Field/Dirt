@@ -17,6 +17,19 @@
 DASHSCOPE_API_KEY=你的百炼API Key
 ```
 
+使用在线数据库时还必须设置：
+
+```text
+DB_HOST=RDS 内网地址
+DB_PORT=3306
+DB_NAME=nimeng_xinyun
+DB_USER=nimeng_app
+DB_PASSWORD=云数据库账号密码
+DB_CONNECTION_LIMIT=5
+```
+
+FC 与 RDS 必须位于同一地域和可通信的 VPC。`DB_HOST` 不能填写 `localhost`，真实数据库密码只能放在 FC 环境变量中。
+
 建议设置：
 
 ```text
@@ -40,3 +53,24 @@ FC 默认 `fcapp.run` 域名会强制将浏览器响应作为附件下载，因�
 ```
 
 上传整个项目目录作为代码包。部署完成后打开 FC 提供的 HTTP 访问地址，网页会自动使用同域 `/api/ai/chat`，不需要本地脚本和正式域名。
+
+部署数据库版后依次检查：
+
+```text
+GET /api/health
+GET /api/data/stats
+GET /api/quiz/start
+```
+
+健康接口应返回 `{"server":"ok","database":"ok"}`。确认后把前端 `js/config.js` 中的 `USE_DATABASE` 改为 `true`，再上传 OSS 前端文件。
+
+`GET /api/quiz/start` 应返回十道不重复题目和 `scorePerQuestion`，且不包含正确答案。单题判定使用：
+
+```text
+POST /api/quiz/answer
+Content-Type: application/json
+
+{"questionId": 1, "answer": "B"}
+```
+
+正式上线前建议在 RDS 的 `questions` 表中保证至少十道 `is_published = 1` 的题目；少于十道时接口会返回当前已有题目，便于录入阶段测试。

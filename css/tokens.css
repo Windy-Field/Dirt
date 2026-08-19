@@ -55,8 +55,8 @@
   --motion-settings-enter: 800ms;
   --motion-settings-exit: 320ms;
   --motion-settings-reveal-start: 100%;
-  --motion-search-enter: 600ms;
-  --motion-search-exit: 260ms;
+  --motion-search-enter: 850ms;
+  --motion-search-exit: 360ms;
   --motion-search-travel-y: 1.5rem;
   --motion-search-scale-from: .97;
   --motion-filter-state: 250ms;

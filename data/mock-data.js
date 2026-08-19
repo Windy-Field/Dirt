@@ -66,5 +66,20 @@ window.MOCK_DATA = {
     { id: "CREATIVE-01", name: "于见泥 IP 形象", category: "角色设计", mark: "于", description: "以古朴封泥轮廓与朱砂印面为灵感，塑造温润亲和的封泥文化数字导览吉祥物。" },
     { id: "CREATIVE-02", name: "齐鲁金石拓片纸品", category: "纸品设计", mark: "印", description: "提取临淄守印、齐北船丞等经典印文，转化为具备传统手作质感的现代文创纸品。" },
     { id: "CREATIVE-03", name: "模拟封缄研学教具", category: "研学教具", mark: "封", description: "配合公益文化普及课堂，动手体验削检、穿绳、覆泥、钤印的古法封缄技艺。" }
+  ],
+  questions: [
+    { id: 1, difficulty: "简单", question: "封泥在古代最主要的用途是什么？", optionA: "装饰陶器", optionB: "封缄文书或物品", optionC: "制作钱币", optionD: "记录天气", correctAnswer: "B", explanation: "封泥通常与绳结、封检和印章配合，用于封缄简牍文书、容器或货物。" },
+    { id: 2, difficulty: "简单", question: "收件官署打开封缄文书前，首先需要做什么？", optionA: "核验泥封和印文是否完整", optionB: "把封泥重新浸湿", optionC: "在封泥上再盖一枚印", optionD: "抄写一份新文书", correctAnswer: "A", explanation: "收件人先核验印文和泥封完整性，确认没有被私拆，再破泥开读。" },
+    { id: 3, difficulty: "中等", question: "研究封泥上的古代地名，主要有助于了解什么？", optionA: "古代饮食口味", optionB: "陶器烧制温度", optionC: "郡国县邑和历史地理", optionD: "古代音乐节拍", correctAnswer: "C", explanation: "封泥印文中的郡、国、县、乡等地名，可以与文献和出土地点相互印证。" },
+    { id: 4, difficulty: "困难", question: "网页中的“临淄守印”主要体现哪一类研究价值？", optionA: "天文历法", optionB: "官制与史料", optionC: "农作物育种", optionD: "服饰染色", correctAnswer: "B", explanation: "“守”与郡守级官署相关，可为研究汉代郡国官制和地方行政提供实物线索。" },
+    { id: 5, difficulty: "简单", question: "制作封泥时，湿泥主要覆盖在哪里？", optionA: "简牍文字表面", optionB: "封检槽中的绳结", optionC: "铜印手柄", optionD: "竹简末端", correctAnswer: "B", explanation: "湿泥被填入封泥槽并包裹绳结，钤印、风干后形成防拆凭信。" },
+    { id: 6, difficulty: "简单", question: "封泥上的印文通常是怎样形成的？", optionA: "毛笔书写", optionB: "刀具刻在干泥上", optionC: "官印钤压湿泥", optionD: "火焰烧制", correctAnswer: "C", explanation: "官印压入湿泥后留下反向印痕，泥干后保存官署或职官信息。" },
+    { id: 7, difficulty: "中等", question: "观察封泥实物时，哪一项属于重要信息？", optionA: "泥质、残损与绳痕", optionB: "现代包装颜色", optionC: "展柜灯光品牌", optionD: "参观者人数", correctAnswer: "A", explanation: "泥质、残损、绳痕和背面压痕能帮助研究封缄工艺与保存状态。" },
+    { id: 8, difficulty: "中等", question: "印蜕相较于实物照片，更适合观察什么？", optionA: "泥块重量", optionB: "文字字形与布局", optionC: "泥土气味", optionD: "出土深度", correctAnswer: "B", explanation: "印蜕强化印面线条和章法，更便于辨认古文字字形与布局。" },
+    { id: 9, difficulty: "困难", question: "网页资料为什么要保留“疑缺印字”等说明？", optionA: "增加文字长度", optionB: "保留不确定的学术判断", optionC: "方便改变字体", optionD: "隐藏文物来源", correctAnswer: "B", explanation: "对残缺或有争议的释读保留阙疑，能避免把研究意见写成绝对定论。" },
+    { id: 10, difficulty: "中等", question: "“仓府”类封泥可以帮助研究哪方面历史？", optionA: "仓储与物资管理", optionB: "星象观测", optionC: "宫廷音乐", optionD: "服装裁剪", correctAnswer: "A", explanation: "仓府封泥反映物资出入库、核验、转运和责任追溯等管理活动。" },
+    { id: 11, difficulty: "困难", question: "封泥在魏晋以后逐渐减少，主要与什么变化有关？", optionA: "纸张逐渐普及", optionB: "青铜完全消失", optionC: "文字停止使用", optionD: "道路全部废弃", correctAnswer: "A", explanation: "随着纸张和新的文书封缄方式普及，依赖简牍封检的封泥制度逐渐退出日常使用。" },
+    { id: 12, difficulty: "困难", question: "研究齐鲁封泥分布时，为什么不能只看现代行政边界？", optionA: "现代地图没有颜色", optionB: "古今行政区划并不完全对应", optionC: "封泥不能移动", optionD: "古代没有地名", correctAnswer: "B", explanation: "同一现代省域中的地点，在汉代可能分属不同刺史部、郡国、县或侯国。" },
+    { id: 13, difficulty: "困难", question: "研究者发现一枚残缺封泥，出土地在今天的临沂，印文疑似古县名，但传世拓本和地方志的释读并不一致。此时最合适的处理方式是什么？", optionA: "直接采用最清晰的一种释读，并在网页中写成已经确定的历史事实，以免读者产生疑惑", optionB: "只依据今天的行政区划判断古代归属，不再查阅刺史部、郡国和县邑等历史地理资料", optionC: "同时记录实物可见特征、不同文献释读和古今区划差异，保留疑问并等待更多材料或专家复核", optionD: "因为封泥已经残缺且资料存在分歧，所以删除该条记录，不把它纳入后续研究和公开展示", correctAnswer: "C", explanation: "面对残缺实物和不同释读，应区分可见事实、文献意见与研究推断，完整保留证据链和不确定性。现代发现地也不能直接替代古代行政归属；在新材料出现前，应保留阙疑并接受专业复核。" }
   ]
 };

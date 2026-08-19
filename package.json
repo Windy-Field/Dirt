@@ -6,7 +6,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check js/app.js && node --check js/api.js && node --check js/config.js && node --check js/ai-service.js && node --check js/three-showcase.js && node --check data/3d-products.js"
+    "db:seed": "node db/seed.js",
+    "check": "node --check server.js && node --check server/db.js && node --check db/seed.js && node --check js/app.js && node --check js/api.js && node --check js/config.js && node --check js/ai-service.js && node --check js/three-showcase.js && node --check data/3d-products.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "mysql2": "^3.14.1"
   },
   "engines": {
     "node": ">=18"
