@@ -2,7 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
-const { createPool, query, isDatabaseConfigured } = require("./server/db");
+const database = require("./server/db");
 
 // ==================== 01. 服务配置 ====================
 // API Key 只从服务器环境变量读取，不能写进前端文件或提交到代码仓库。
@@ -26,7 +26,7 @@ const AI_RATE_LIMIT_COUNT = 8;
 const QUIZ_QUESTION_COUNT = 10;
 const QUIZ_SCORE_PER_QUESTION = 10;
 
-const dbPool = createPool();
+const dbPool = database.createPool();
 let aiStatusCache = { checkedAt: 0, connected: false };
 let aiStatusProbe = null;
 const aiRateLimit = new Map();
@@ -37,7 +37,10 @@ const AI_STATUS_FAILURE_CACHE_MS = 15 * 1000;
 // ==================== 02. 通用响应和静态网页服务 ====================
 // 所有 API 都用这个函数返回 JSON，并附带跨域和安全响应头。
 function sendJson(response, status, data) {
-  const requestOrigin = response.req?.headers.origin;
+  let requestOrigin = "";
+  if (response.req && response.req.headers) {
+    requestOrigin = response.req.headers.origin || "";
+  }
   const allowedOrigin = process.env.FRONTEND_ORIGIN || "*";
   let corsOrigin = "null";
   if (allowedOrigin === "*") corsOrigin = "*";
@@ -85,11 +88,17 @@ const MIME_TYPES = {
 // path.resolve + startsWith 检查用于阻止访问项目文件夹以外的文件。
 function serveStatic(request, response) {
   const requestPath = decodeURIComponent(new URL(request.url, "http://127.0.0.1").pathname);
-  const relativePath = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");
+  let relativePath = requestPath.replace(/^\/+/, "");
+  if (requestPath === "/") {
+    relativePath = "index.html";
+  }
   // 首页和 Vite 构建产物从 dist 读取；旧页面脚本、数据和媒体继续从项目根目录读取。
   const buildPath = path.resolve(BUILD_ROOT, relativePath);
   const sourcePath = path.resolve(WEB_ROOT, relativePath);
-  const filePath = relativePath === "index.html" || fs.existsSync(buildPath) ? buildPath : sourcePath;
+  let filePath = sourcePath;
+  if (relativePath === "index.html" || fs.existsSync(buildPath)) {
+    filePath = buildPath;
+  }
   if (!filePath.startsWith(`${WEB_ROOT}${path.sep}`)) return sendJson(response, 403, { error: "禁止访问" });
   // 源码、配置和版本目录不能通过公网静态下载，即使误被部署包带入也要拒绝访问。
   const blockedFile =
@@ -114,7 +123,10 @@ function serveStatic(request, response) {
           }
         } else {
           const start = Number(match[1]);
-          const requestedEnd = match[2] ? Number(match[2]) : stat.size - 1;
+          let requestedEnd = stat.size - 1;
+          if (match[2]) {
+            requestedEnd = Number(match[2]);
+          }
           if (Number.isSafeInteger(start) && Number.isSafeInteger(requestedEnd) && start <= requestedEnd) {
             range = { start, end: Math.min(requestedEnd, stat.size - 1) };
           }
@@ -154,7 +166,11 @@ function serveStatic(request, response) {
     if (process.env.ENABLE_HSTS === "true")
       staticHeaders["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
     // 有 Range 时只读取对应片段并返回 206；普通请求仍返回完整文件和 200。
-    response.writeHead(range ? 206 : 200, staticHeaders);
+    let responseStatus = 200;
+    if (range) {
+      responseStatus = 206;
+    }
+    response.writeHead(responseStatus, staticHeaders);
     fs.createReadStream(filePath, range || undefined).pipe(response);
   });
 }
@@ -207,7 +223,8 @@ function validateImages(images) {
     error.httpStatus = 400;
     throw error;
   }
-  images.forEach(function validateImage(image) {
+  for (let index = 0; index < images.length; index += 1) {
+    const image = images[index];
     if (!["image/jpeg", "image/png", "image/webp"].includes(image.type)) {
       const error = new Error(`${image.name || "文件"} 不是支持的图片格式`);
       error.errorCode = "AI_UNSUPPORTED_IMAGE_TYPE";
@@ -222,16 +239,20 @@ function validateImages(images) {
       error.httpStatus = 400;
       throw error;
     }
-    const actualBytes =
-      Math.floor((encoded[1].length * 3) / 4) -
-      (encoded[1].endsWith("==") ? 2 : encoded[1].endsWith("=") ? 1 : 0);
+    let paddingBytes = 0;
+    if (encoded[1].endsWith("==")) {
+      paddingBytes = 2;
+    } else if (encoded[1].endsWith("=")) {
+      paddingBytes = 1;
+    }
+    const actualBytes = Math.floor((encoded[1].length * 3) / 4) - paddingBytes;
     if (actualBytes > MAX_IMAGE_BYTES) {
       const error = new Error(`${image.name || "图片"} 超过 5MB`);
       error.errorCode = "AI_IMAGE_TOO_LARGE";
       error.httpStatus = 400;
       throw error;
     }
-  });
+  }
 }
 
 // 只限制高成本 AI 请求，避免公开接口被脚本反复调用而消耗云端额度。
@@ -240,11 +261,30 @@ function isAiRateLimited(request) {
   const ip = String(request.socket.remoteAddress || "unknown");
   const now = Date.now();
   if (aiRateLimit.size > 10000) {
-    for (const [key, times] of aiRateLimit) {
-      if (!times.some((time) => now - time < AI_RATE_LIMIT_WINDOW)) aiRateLimit.delete(key);
+    const rateLimitEntries = Array.from(aiRateLimit.entries());
+    for (let entryIndex = 0; entryIndex < rateLimitEntries.length; entryIndex += 1) {
+      const entry = rateLimitEntries[entryIndex];
+      const key = entry[0];
+      const times = entry[1];
+      let hasRecentTime = false;
+      for (let index = 0; index < times.length; index += 1) {
+        if (now - times[index] < AI_RATE_LIMIT_WINDOW) {
+          hasRecentTime = true;
+          break;
+        }
+      }
+      if (!hasRecentTime) {
+        aiRateLimit.delete(key);
+      }
     }
   }
-  const recent = (aiRateLimit.get(ip) || []).filter((time) => now - time < AI_RATE_LIMIT_WINDOW);
+  const recordedTimes = aiRateLimit.get(ip) || [];
+  const recent = [];
+  for (let index = 0; index < recordedTimes.length; index += 1) {
+    if (now - recordedTimes[index] < AI_RATE_LIMIT_WINDOW) {
+      recent.push(recordedTimes[index]);
+    }
+  }
   if (recent.length >= AI_RATE_LIMIT_COUNT) {
     aiRateLimit.set(ip, recent);
     return true;
@@ -254,22 +294,38 @@ function isAiRateLimited(request) {
   return false;
 }
 
+// 记录详细错误，但只向访客返回安全的错误提示。
 function publicError(error, fallback = "请求处理失败") {
   // 详细错误只写入服务日志，避免把数据库地址或上游响应泄露给访客。
   console.error(error);
-  return error?.publicMessage || fallback;
+  if (error && error.publicMessage) {
+    return error.publicMessage;
+  }
+  return fallback;
 }
 
+// 把 AI 错误整理成前端可以显示的有限字段。
 function publicAiError(error, fallback = "AI 请求失败") {
   console.error(error);
+  let message = fallback;
+  let errorCode = "INTERNAL_ERROR";
+  let upstreamCode = null;
+  let requestId = null;
+  if (error) {
+    message = error.publicMessage || fallback;
+    errorCode = error.errorCode || errorCode;
+    upstreamCode = error.upstreamCode || null;
+    requestId = error.requestId || null;
+  }
   return {
-    message: error?.publicMessage || fallback,
-    errorCode: error?.errorCode || "INTERNAL_ERROR",
-    upstreamCode: error?.upstreamCode || null,
-    requestId: error?.requestId || null,
+    message: message,
+    errorCode: errorCode,
+    upstreamCode: upstreamCode,
+    requestId: requestId,
   };
 }
 
+// 数据库未配置时，统一返回服务不可用提示。
 function databaseUnavailable(response) {
   return sendJson(response, 503, {
     error: "数据库尚未配置，请设置 DB_HOST、DB_NAME、DB_USER 和 DB_PASSWORD",
@@ -278,7 +334,7 @@ function databaseUnavailable(response) {
 
 // 一次查询取得首页的三项数量，避免分别请求数据库。
 async function getDatabaseStats() {
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     `
     SELECT
@@ -287,16 +343,28 @@ async function getDatabaseStats() {
       (SELECT COUNT(*) FROM courses WHERE is_published = 1) AS courses
   `,
   );
+  const rows = queryResult[0];
   return rows[0];
 }
 
 // 列表字段可能存成 JSON 字符串，先转回数组，前端就能直接遍历。
 function mapSite(row) {
-  return {
-    ...row,
-    tags: typeof row.tags === "string" ? JSON.parse(row.tags || "[]") : row.tags || [],
-    seals: typeof row.seals === "string" ? JSON.parse(row.seals || "[]") : row.seals || [],
-  };
+  const site = Object.assign({}, row);
+  let tags = [];
+  let seals = [];
+  if (typeof row.tags === "string") {
+    tags = JSON.parse(row.tags || "[]");
+  } else if (row.tags) {
+    tags = row.tags;
+  }
+  if (typeof row.seals === "string") {
+    seals = JSON.parse(row.seals || "[]");
+  } else if (row.seals) {
+    seals = row.seals;
+  }
+  site.tags = tags;
+  site.seals = seals;
+  return site;
 }
 
 // 按行政体系查询已发布地点；“其他”表示排除三个主要体系。
@@ -305,21 +373,44 @@ async function getSites(period = "全部") {
   let sql = "SELECT * FROM sites WHERE is_published = 1";
   if (period && period !== "全部") {
     sql += " AND period LIKE ?";
-    params.push(period === "其他" ? "%" : `%${period}%`);
+    if (period === "其他") {
+      params.push("%");
+    } else {
+      params.push(`%${period}%`);
+    }
   }
   sql += " ORDER BY id";
-  const [rows] = await query(dbPool, sql, params);
+  const queryResult = await database.query(dbPool, sql, params);
+  const rows = queryResult[0];
   if (period === "其他") {
     const mainSystems = ["青州", "兖州", "徐州"];
-    return rows.filter((site) => !mainSystems.some((name) => site.period.includes(name))).map(mapSite);
+    const otherSites = [];
+    for (let siteIndex = 0; siteIndex < rows.length; siteIndex += 1) {
+      const site = rows[siteIndex];
+      let belongsToMainSystem = false;
+      for (let nameIndex = 0; nameIndex < mainSystems.length; nameIndex += 1) {
+        if (site.period.includes(mainSystems[nameIndex])) {
+          belongsToMainSystem = true;
+          break;
+        }
+      }
+      if (!belongsToMainSystem) {
+        otherSites.push(mapSite(site));
+      }
+    }
+    return otherSites;
   }
-  return rows.map(mapSite);
+  const mappedSites = [];
+  for (let index = 0; index < rows.length; index += 1) {
+    mappedSites.push(mapSite(rows[index]));
+  }
+  return mappedSites;
 }
 
 // 在多个字段中搜索关键词；参数单独绑定，不直接拼进 SQL。
 async function getRelics(keyword = "") {
   const like = `%${keyword}%`;
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     `
     SELECT id, name, inscription, period, location, category, tone, value, image_url AS imageUrl, summary
@@ -330,28 +421,33 @@ async function getRelics(keyword = "") {
   `,
     [keyword, like],
   );
+  const rows = queryResult[0];
   return { items: rows, total: rows.length };
 }
 
+// 查询已发布课程，并返回前端需要的公开字段。
 async function getCourses() {
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     "SELECT id, title, lesson, duration, description, video_url AS videoUrl, poster_url AS posterUrl FROM courses WHERE is_published = 1 ORDER BY lesson, id",
   );
+  const rows = queryResult[0];
   return rows;
 }
 
+// 查询已发布文创作品，并按后台排序字段返回。
 async function getCreativeWorks() {
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     "SELECT id, name, category, mark, description FROM creative_works WHERE is_published = 1 ORDER BY sort_order, id",
   );
+  const rows = queryResult[0];
   return rows;
 }
 
 // 开始一轮问答：最多随机取十条，同一轮不会重复；开发初期允许少于十题。
 async function startQuizRound() {
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     `
     SELECT id, question_text AS question, option_a AS optionA, option_b AS optionB,
@@ -362,25 +458,32 @@ async function startQuizRound() {
     LIMIT ${QUIZ_QUESTION_COUNT}
   `,
   );
+  const rows = queryResult[0];
   if (!rows.length) throw new Error("题库中没有已发布题目");
   return { questions: rows, total: rows.length, scorePerQuestion: QUIZ_SCORE_PER_QUESTION };
 }
 
 // 每次只判断当前一道题。正确答案和解析仅在作答后返回。
 async function answerQuizQuestion(questionId, selectedAnswer) {
-  const [rows] = await query(
+  const queryResult = await database.query(
     dbPool,
     "SELECT correct_answer, explanation FROM questions WHERE id = ? AND is_published = 1 LIMIT 1",
     [questionId],
   );
+  const rows = queryResult[0];
   if (!rows[0]) throw new Error("题目不存在或已停止发布");
+  const correct = selectedAnswer === rows[0].correct_answer;
+  let earnedScore = 0;
+  if (correct) {
+    earnedScore = QUIZ_SCORE_PER_QUESTION;
+  }
   return {
     questionId,
     selectedAnswer,
-    correct: selectedAnswer === rows[0].correct_answer,
+    correct: correct,
     correctAnswer: rows[0].correct_answer,
     explanation: rows[0].explanation,
-    earnedScore: selectedAnswer === rows[0].correct_answer ? QUIZ_SCORE_PER_QUESTION : 0,
+    earnedScore: earnedScore,
   };
 }
 
@@ -398,24 +501,45 @@ async function requestDashScope(url, body, errorLabel) {
       signal: AbortSignal.timeout(60 * 1000),
     });
   } catch (error) {
-    error.errorCode =
-      error.name === "TimeoutError" || error.name === "AbortError"
-        ? "AI_UPSTREAM_TIMEOUT"
-        : "AI_UPSTREAM_NETWORK_ERROR";
-    error.publicMessage =
-      error.errorCode === "AI_UPSTREAM_TIMEOUT"
-        ? `${errorLabel}请求超时，请稍后重试`
-        : `${errorLabel}网络连接失败，请检查服务器网络或代理配置`;
+    if (error.name === "TimeoutError" || error.name === "AbortError") {
+      error.errorCode = "AI_UPSTREAM_TIMEOUT";
+      error.publicMessage = `${errorLabel}请求超时，请稍后重试`;
+    } else {
+      error.errorCode = "AI_UPSTREAM_NETWORK_ERROR";
+      error.publicMessage = `${errorLabel}网络连接失败，请检查服务器网络或代理配置`;
+    }
     throw error;
   }
-  const data = await upstream.json().catch(() => ({}));
+  let data = {};
+  try {
+    data = await upstream.json();
+  } catch (error) {
+    data = {};
+  }
   if (!upstream.ok) {
-    const reason = data.error?.message || data.message || `${errorLabel}返回 ${upstream.status}`;
+    let reason = `${errorLabel}返回 ${upstream.status}`;
+    if (data.error && data.error.message) {
+      reason = data.error.message;
+    } else if (data.message) {
+      reason = data.message;
+    }
     const error = new Error(reason);
     error.publicMessage = reason;
     error.errorCode = `UPSTREAM_HTTP_${upstream.status}`;
-    error.upstreamCode = data.code || data.error?.code || null;
-    error.requestId = data.request_id || data.requestId || upstream.headers.get("x-request-id") || null;
+    error.upstreamCode = null;
+    if (data.code) {
+      error.upstreamCode = data.code;
+    } else if (data.error && data.error.code) {
+      error.upstreamCode = data.error.code;
+    }
+    error.requestId = null;
+    if (data.request_id) {
+      error.requestId = data.request_id;
+    } else if (data.requestId) {
+      error.requestId = data.requestId;
+    } else {
+      error.requestId = upstream.headers.get("x-request-id") || null;
+    }
     error.httpStatus = upstream.status;
     throw error;
   }
@@ -426,9 +550,10 @@ async function requestDashScope(url, body, errorLabel) {
 // 用真实应用请求验证网络、Key 和应用 ID；结果短暂缓存，避免每次刷新重复计费。
 async function isAiUpstreamReachable() {
   if (!API_KEY || !APP_ID) return false;
-  const cacheDuration = aiStatusCache.connected
-    ? AI_STATUS_SUCCESS_CACHE_MS
-    : AI_STATUS_FAILURE_CACHE_MS;
+  let cacheDuration = AI_STATUS_FAILURE_CACHE_MS;
+  if (aiStatusCache.connected) {
+    cacheDuration = AI_STATUS_SUCCESS_CACHE_MS;
+  }
   if (Date.now() - aiStatusCache.checkedAt < cacheDuration) return aiStatusCache.connected;
   // FC 冷启动后可能同时收到多个页面探测，复用进行中的请求以免重复调用上游。
   if (aiStatusProbe) return aiStatusProbe;
@@ -456,7 +581,9 @@ function normalizeAiName(text) {
   return String(text || "").replaceAll("于见泥", "印小灵");
 }
 
-async function askBailianApplication({ message, sessionId }) {
+async function askBailianApplication(requestData) {
+  const message = requestData.message;
+  const sessionId = requestData.sessionId;
   const roleContext =
     "你在本网站中的名字是‘印小灵’，请始终使用这个名字自称，绝对不要使用‘于见泥’或任何其他旧名称。语言风格亲切、可爱、自然，像一只认真陪伴用户的小猫助手，可以偶尔使用轻松俏皮的表达，但不要句句卖萌，也不要影响信息准确性。你擅长讲解封泥的封缄方式、历史价值、齐鲁文化和相关故事，也可以自然回应用户的日常问题。尽量以通俗连贯的段落形式讲解，允许换行分段；对于不确定的考证要明确说明。";
   const input = { prompt: `${roleContext}\n\n用户问题：${message}` };
@@ -467,9 +594,17 @@ async function askBailianApplication({ message, sessionId }) {
     { input, parameters: {}, debug: {} },
     "上游接口",
   );
+  let replyText = "百炼应用没有返回文本内容";
+  let returnedSessionId = sessionId;
+  if (data.output && data.output.text) {
+    replyText = data.output.text;
+  }
+  if (data.output && data.output.session_id) {
+    returnedSessionId = data.output.session_id;
+  }
   return {
-    reply: normalizeAiName(data.output?.text || "百炼应用没有返回文本内容"),
-    sessionId: data.output?.session_id || sessionId,
+    reply: normalizeAiName(replyText),
+    sessionId: returnedSessionId,
     requestId: data.request_id || null,
     usage: data.usage || null,
     appId: APP_ID,
@@ -478,15 +613,22 @@ async function askBailianApplication({ message, sessionId }) {
 
 // ==================== 04. 图片问答：调用千问视觉模型 ====================
 // 只要请求中包含图片，就走该函数；模型先描述可见事实，再谨慎给出释读候选。
-async function askQwenVision({ message, images }) {
-  const content = [
-    ...images.map((image) => ({ type: "image_url", image_url: { url: image.dataUrl } })),
-    {
-      type: "text",
-      text:
-        message || "请观察上传的封泥图片，描述可见形态、印面、文字线条和保存状态，并谨慎给出可能的印文候选。",
-    },
-  ];
+async function askQwenVision(requestData) {
+  const message = requestData.message;
+  const images = requestData.images;
+  const content = [];
+  for (let index = 0; index < images.length; index += 1) {
+    const image = images[index];
+    content.push({
+      type: "image_url",
+      image_url: { url: image.dataUrl },
+    });
+  }
+  let questionText = message;
+  if (!questionText) {
+    questionText = "请观察上传的封泥图片，描述可见形态、印面、文字线条和保存状态，并谨慎给出可能的印文候选。";
+  }
+  content.push({ type: "text", text: questionText });
 
   const data = await requestDashScope(
     DASHSCOPE_COMPATIBLE_URL,
@@ -504,8 +646,17 @@ async function askQwenVision({ message, images }) {
     },
     "视觉模型",
   );
+  let replyText = "千问视觉模型没有返回文本内容";
+  if (
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+  ) {
+    replyText = data.choices[0].message.content;
+  }
   return {
-    reply: normalizeAiName(data.choices?.[0]?.message?.content || "千问视觉模型没有返回文本内容"),
+    reply: normalizeAiName(replyText),
     model: data.model || VISION_MODEL,
     usage: data.usage || null,
     mode: "vision",
@@ -519,21 +670,28 @@ const server = http.createServer(async function handleRequest(request, response)
 
   // 前端启动时调用：验证真实上游连通性（可能消耗额度），只公开脱敏配置。
   if (request.method === "GET" && request.url === "/api/ai/status") {
+    const connected = await isAiUpstreamReachable();
+    let appId = "";
+    if (APP_ID) {
+      appId = `${APP_ID.slice(0, 6)}...`;
+    }
     return sendJson(response, 200, {
-      connected: await isAiUpstreamReachable(),
+      connected: connected,
       configured: Boolean(API_KEY && APP_ID),
       verified: true,
       provider: "Bailian Application",
-      appId: APP_ID ? `${APP_ID.slice(0, 6)}...` : "",
+      appId: appId,
       supportsImages: true,
       visionModel: VISION_MODEL,
     });
   }
 
   if (request.method === "GET" && request.url === "/api/health") {
-    if (!isDatabaseConfigured()) return sendJson(response, 200, { server: "ok", database: "not-configured" });
+    if (!database.isDatabaseConfigured()) {
+      return sendJson(response, 200, { server: "ok", database: "not-configured" });
+    }
     try {
-      await query(dbPool, "SELECT 1 AS ok");
+      await database.query(dbPool, "SELECT 1 AS ok");
       return sendJson(response, 200, { server: "ok", database: "ok" });
     } catch (error) {
       return sendJson(response, 503, { server: "ok", database: "error", message: "数据库暂时不可用" });
@@ -541,7 +699,7 @@ const server = http.createServer(async function handleRequest(request, response)
   }
 
   if (request.method === "GET" && request.url.startsWith("/api/data/")) {
-    if (!isDatabaseConfigured()) return databaseUnavailable(response);
+    if (!database.isDatabaseConfigured()) return databaseUnavailable(response);
     try {
       const url = new URL(request.url, "http://127.0.0.1");
       if (url.pathname === "/api/data/stats") return sendJson(response, 200, await getDatabaseStats());
@@ -554,7 +712,7 @@ const server = http.createServer(async function handleRequest(request, response)
         return sendJson(response, 200, await getCreativeWorks());
       const relicMatch = url.pathname.match(/^\/api\/data\/relics\/([^/]+)$/);
       if (relicMatch) {
-        const [rows] = await query(
+        const queryResult = await database.query(
           dbPool,
           `
           SELECT id, name, inscription, period, location, category, tone, value, image_url AS imageUrl, summary
@@ -562,6 +720,7 @@ const server = http.createServer(async function handleRequest(request, response)
         `,
           [relicMatch[1]],
         );
+        const rows = queryResult[0];
         return sendJson(response, 200, rows[0] || null);
       }
       return sendJson(response, 404, { error: "数据接口不存在" });
@@ -571,7 +730,7 @@ const server = http.createServer(async function handleRequest(request, response)
   }
 
   if (request.method === "GET" && request.url === "/api/quiz/start") {
-    if (!isDatabaseConfigured()) return databaseUnavailable(response);
+    if (!database.isDatabaseConfigured()) return databaseUnavailable(response);
     try {
       return sendJson(response, 200, await startQuizRound());
     } catch (error) {
@@ -580,7 +739,7 @@ const server = http.createServer(async function handleRequest(request, response)
   }
 
   if (request.method === "POST" && request.url === "/api/quiz/answer") {
-    if (!isDatabaseConfigured()) return databaseUnavailable(response);
+    if (!database.isDatabaseConfigured()) return databaseUnavailable(response);
     try {
       const body = await readJson(request);
       if (!body || typeof body !== "object" || Array.isArray(body))
@@ -626,15 +785,22 @@ const server = http.createServer(async function handleRequest(request, response)
       validateImages(images);
       if (!message && images.length === 0)
         return sendJson(response, 400, { error: "请输入问题或上传图片", errorCode: "AI_EMPTY_INPUT" });
-      const result = images.length
-        ? await askQwenVision({ message, images })
-        : await askBailianApplication({ message, sessionId: body.sessionId });
+      let result;
+      if (images.length) {
+        result = await askQwenVision({ message: message, images: images });
+      } else {
+        result = await askBailianApplication({ message: message, sessionId: body.sessionId });
+      }
       return sendJson(response, 200, result);
     } catch (error) {
       const detail = publicAiError(error);
+      let statusCode = 502;
+      if (error.httpStatus && error.httpStatus >= 400 && error.httpStatus < 600) {
+        statusCode = error.httpStatus;
+      }
       return sendJson(
         response,
-        error.httpStatus && error.httpStatus >= 400 && error.httpStatus < 600 ? error.httpStatus : 502,
+        statusCode,
         {
           error: detail.message,
           errorCode: detail.errorCode,
@@ -655,7 +821,11 @@ server.listen(PORT, "0.0.0.0", function reportServerStarted() {
   console.log(`Website and Qwen proxy listening on 0.0.0.0:${PORT}`);
   console.log(`Bailian application: ${APP_ID || "missing"}`);
   console.log(`Vision model: ${VISION_MODEL}`);
-  console.log(API_KEY ? "DASHSCOPE_API_KEY is configured" : "DASHSCOPE_API_KEY is missing");
+  if (API_KEY) {
+    console.log("DASHSCOPE_API_KEY is configured");
+  } else {
+    console.log("DASHSCOPE_API_KEY is missing");
+  }
 });
 // 防止异常客户端长期占用连接；AI 上游另有更短的超时控制。
 server.requestTimeout = REQUEST_TIMEOUT;

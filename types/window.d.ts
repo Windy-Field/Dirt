@@ -104,7 +104,9 @@ interface Window {
         hasMusic(): boolean;
     };
     scheduler?: {
-        postTask(callback: () => void, options: {
+        postTask(callback: {
+            (): void;
+        }, options: {
             priority: string;
         }): Promise<void>;
     };

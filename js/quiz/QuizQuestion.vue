@@ -17,6 +17,15 @@ const currentAnswerResult = computed(function getCurrentAnswerResult() {
   return props.answerResult;
 });
 
+// 根据判题结果生成提示文字，避免在模板中写多层条件表达式。
+const answerSummary = computed(function getAnswerSummary() {
+  if (!currentAnswerResult.value) return "";
+  if (currentAnswerResult.value.correct) {
+    return `回答正确，答案 ${props.correctDisplayKey}，本题获得 ${currentAnswerResult.value.earnedScore} 分`;
+  }
+  return `回答错误，正确答案是 ${props.correctDisplayKey}`;
+});
+
 const emit = defineEmits(["update:selectedAnswer"]);
 
 function choose(optionKey) {
@@ -29,7 +38,7 @@ function choose(optionKey) {
   <fieldset
     class="quiz-question"
     :class="{
-      'is-correct': currentAnswerResult?.correct,
+      'is-correct': currentAnswerResult && currentAnswerResult.correct,
       'is-wrong': currentAnswerResult && !currentAnswerResult.correct,
     }"
   >
@@ -77,11 +86,7 @@ function choose(optionKey) {
     </div>
     <Transition name="quiz-reveal">
       <div v-if="currentAnswerResult" class="quiz-explanation">
-        <strong>{{
-          currentAnswerResult.correct
-            ? `回答正确，答案 ${correctDisplayKey}，本题获得 ${currentAnswerResult.earnedScore} 分`
-            : `回答错误，正确答案是 ${correctDisplayKey}`
-        }}</strong>
+        <strong>{{ answerSummary }}</strong>
         <p>{{ currentAnswerResult.explanation }}</p>
       </div>
     </Transition>

@@ -293,15 +293,18 @@
                                     [column - radius, row + offset],
                                     [column + radius, row + offset],
                                 ];
-                                for (const [candidateColumn, candidateRow] of candidates) {
+                                for (let pointIndex = 0; pointIndex < candidates.length; pointIndex += 1) {
+                                    const candidate = candidates[pointIndex];
+                                    const candidateColumn = candidate[0];
+                                    const candidateRow = candidate[1];
                                     if (candidateColumn < 0 ||
                                         candidateColumn >= columns ||
                                         candidateRow < 0 ||
                                         candidateRow >= rows)
                                         continue;
-                                    const candidateIndex = candidateRow * columns + candidateColumn;
-                                    if (validVertices[candidateIndex]) {
-                                        replacement = sampledHeights[candidateIndex];
+                                    const candidateVertexIndex = candidateRow * columns + candidateColumn;
+                                    if (validVertices[candidateVertexIndex]) {
+                                        replacement = sampledHeights[candidateVertexIndex];
                                         found = true;
                                         break;
                                     }
@@ -508,7 +511,10 @@
                 const cellWidth = terrainWidth / (columns - 1);
                 const cellHeight = terrainHeightDimension / (rows - 1);
                 // 只遍历线段包围盒内的顶点，避免每个顶点扫描整个省的水系。
-                for (const [start, end] of segments) {
+                for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex += 1) {
+                    const segment = segments[segmentIndex];
+                    const start = segment[0];
+                    const end = segment[1];
                     const left = Math.max(0, Math.floor((Math.min(start[0], end[0]) - radius + terrainWidth / 2) / cellWidth));
                     const right = Math.min(columns - 1, Math.ceil((Math.max(start[0], end[0]) + radius + terrainWidth / 2) / cellWidth));
                     const top = Math.max(0, Math.floor((terrainHeightDimension / 2 - Math.max(start[1], end[1]) - radius) / cellHeight));
@@ -694,7 +700,11 @@
                 const x1 = source73[0];
                 const y1 = source73[1];
                 const fractions = [0, 1];
-                for (const [a, b] of [[x0, x1], [y0, y1], [x0 + y0, x1 + y1]]) {
+                const fractionRanges = [[x0, x1], [y0, y1], [x0 + y0, x1 + y1]];
+                for (let rangeIndex = 0; rangeIndex < fractionRanges.length; rangeIndex += 1) {
+                    const range = fractionRanges[rangeIndex];
+                    const a = range[0];
+                    const b = range[1];
                     if (Math.abs(b - a) < 1e-10)
                         continue;
                     for (let edge = Math.floor(Math.min(a, b)) + 1; edge < Math.max(a, b); edge++) {
@@ -808,7 +818,9 @@
                                         segment = [];
                                         return;
                                     }
-                                    boundaryFitPoints.push(...segment);
+                                    for (let segmentIndex = 0; segmentIndex < segment.length; segmentIndex += 1) {
+                                        boundaryFitPoints.push(segment[segmentIndex]);
+                                    }
                                     const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(segment), boundaryMaterial);
                                     line.userData.prefecture = prefecture.name;
                                     line.renderOrder = 10;

@@ -15,7 +15,9 @@ export default defineConfig({
       entry: "js/quiz/main.js",
       formats: ["iife"],
       name: "NiyunQuizApp",
-      fileName: () => "quiz-bundle.js",
+      fileName: function getQuizBundleFileName() {
+        return "quiz-bundle.js";
+      },
     },
     rollupOptions: {
       output: {

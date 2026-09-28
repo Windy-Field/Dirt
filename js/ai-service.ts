@@ -110,7 +110,8 @@ interface AiImageData {
         async getStatus(): Promise<AiStatus> {
             let latestStatus: AiStatus | null = null;
             let latestBaseUrl = "";
-            for (const baseUrl of API_BASE_URLS) {
+            for (let baseUrlIndex = 0; baseUrlIndex < API_BASE_URLS.length; baseUrlIndex += 1) {
+                const baseUrl = API_BASE_URLS[baseUrlIndex];
                 try {
                     const response = await fetch(("" + (baseUrl) + "/api/ai/status"), { signal: AbortSignal.timeout(10000) });
                     let valueResult17;
@@ -245,7 +246,8 @@ interface AiImageData {
                 valueResult35 = "AI 后端地址未配置（错误码：AI_BACKEND_NOT_CONFIGURED）。请通过 npm start 启动 server.js，或在 js/config.js 配置 AI_API_BASE_URL";
             }
             let lastError = valueResult35;
-            for (const baseUrl of candidates) {
+            for (let candidateIndex = 0; candidateIndex < candidates.length; candidateIndex += 1) {
+                const baseUrl = candidates[candidateIndex];
                 try {
                     const response = await fetch(("" + (baseUrl) + "/api/ai/chat"), {
                         method: "POST",

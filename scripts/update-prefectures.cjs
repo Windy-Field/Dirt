@@ -6,16 +6,29 @@ async function updatePrefectures() {
   const response = await fetch(source);
   if (!response.ok) throw new Error(`DataV HTTP ${response.status}`);
   const data = await response.json();
-  if (data.features?.length !== 16) throw new Error('Expected 16 prefectures');
-  const prefectures = data.features.map(function readPrefecture(feature) {
-    const { type, coordinates } = feature.geometry;
-    if (!['Polygon', 'MultiPolygon'].includes(type)) throw new Error(`Unexpected geometry: ${type}`);
-    return {
+  if (!data.features || data.features.length !== 16) throw new Error('Expected 16 prefectures');
+  const prefectures = [];
+  for (let index = 0; index < data.features.length; index += 1) {
+    const feature = data.features[index];
+    const type = feature.geometry.type;
+    const coordinates = feature.geometry.coordinates;
+    if (type !== 'Polygon' && type !== 'MultiPolygon') throw new Error(`Unexpected geometry: ${type}`);
+    let rings = coordinates;
+    if (type === 'MultiPolygon') {
+      rings = [];
+      for (let polygonIndex = 0; polygonIndex < coordinates.length; polygonIndex += 1) {
+        const polygonRings = coordinates[polygonIndex];
+        for (let ringIndex = 0; ringIndex < polygonRings.length; ringIndex += 1) {
+          rings.push(polygonRings[ringIndex]);
+        }
+      }
+    }
+    prefectures.push({
       name: feature.properties.name.replace(/市$/, ''),
       // 展示层按边统计归属；这里仅展开环数组，不把不同环拼成一条折线。
-      rings: type === 'MultiPolygon' ? coordinates.flat() : coordinates,
-    };
-  });
+      rings: rings,
+    });
+  }
   const header = `/* DataV administrative polygons, not rivers. Source: ${source}\n * Full source vertices retained; cultural visualization, not survey data.\n */\n`;
   await fs.writeFile(path.join(__dirname, '../data/shandong-prefectures.js'),
     header + 'window.SHANDONG_PREFECTURES = ' + JSON.stringify(prefectures) + ';\n');

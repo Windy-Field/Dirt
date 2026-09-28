@@ -69,7 +69,9 @@
             enabledInput.disabled = locked;
             enabledInput.checked = !locked && preferences.enabled;
         }
-        for (const input of [sizeInput, densityInput]) {
+        const rangeInputs = [sizeInput, densityInput];
+        for (let inputIndex = 0; inputIndex < rangeInputs.length; inputIndex += 1) {
+            const input = rangeInputs[inputIndex];
             if (input) {
                 input.disabled = locked || !preferences.enabled;
             }
@@ -158,8 +160,10 @@
         particle.remove();
     }
     function clearTrail() {
-        for (const particle of particles.keys())
-            removeParticle(particle);
+        const particleList = Array.from(particles.keys());
+        for (let particleIndex = 0; particleIndex < particleList.length; particleIndex += 1) {
+            removeParticle(particleList[particleIndex]);
+        }
         previousPoint = null;
     }
     function emitParticle(x: number, y: number) {
@@ -230,7 +234,9 @@
     new MutationObserver(function handleMotionSetting() {
         syncTrailControls();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-motion"] });
-    for (const input of [enabledInput, sizeInput, densityInput]) {
+    const controlInputs = [enabledInput, sizeInput, densityInput];
+    for (let inputIndex = 0; inputIndex < controlInputs.length; inputIndex += 1) {
+        const input = controlInputs[inputIndex];
         let valueResult13;
         const value10 = input;
         if (value10 === null || value10 === undefined) {

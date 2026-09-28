@@ -141,7 +141,9 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     {
                         const d = items9[index11];
                         const index = index11;
-                        for (const highlight of [true, false]) {
+                        const highlightValues = [true, false];
+                        for (let highlightIndex = 0; highlightIndex < highlightValues.length; highlightIndex += 1) {
+                            const highlight = highlightValues[highlightIndex];
                             const path = document.createElementNS(ns, "path");
                             path.setAttribute("d", d);
                             path.setAttribute("fill", "none");
@@ -226,14 +228,16 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                                 for (let index35 = 0; index35 < items33.length; index35++) {
                                     {
                                         const node = items33[index35];
-                                        for (const attr of (function copyItems40() {
+                                        const attributes = (function copyItems40() {
                                             const items37 = [];
                                             const part38 = Array.from(node.attributes);
                                             for (let index39 = 0; index39 < part38.length; index39++) {
                                                 items37.push(part38[index39]);
                                             }
                                             return items37;
-                                        })()) {
+                                        })();
+                                        for (let attributeIndex = 0; attributeIndex < attributes.length; attributeIndex += 1) {
+                                            const attr = attributes[attributeIndex];
                                             let value = attr.value;
                                             const items41 = Array.from(ids.entries());
                                             for (let index43 = 0; index43 < items41.length; index43++) {

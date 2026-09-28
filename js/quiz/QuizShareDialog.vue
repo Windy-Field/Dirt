@@ -17,14 +17,26 @@ let copyResetTimer = null;
 
 function open() {
   copied.value = false;
-  copyButtonText.value = copyCount.value ? "再次复制" : "复制当前网址";
+  if (copyCount.value) {
+    copyButtonText.value = "再次复制";
+  } else {
+    copyButtonText.value = "复制当前网址";
+  }
   copyFeedback.value = "已复制当前网址，可发送给朋友了。";
-  dialog.value?.showModal();
-  nextTick(() => copyButton.value?.focus());
+  if (dialog.value) {
+    dialog.value.showModal();
+  }
+  nextTick(function focusCopyButton() {
+    if (copyButton.value) {
+      copyButton.value.focus();
+    }
+  });
 }
 
 function close() {
-  dialog.value?.close();
+  if (dialog.value) {
+    dialog.value.close();
+  }
 }
 
 // 优先用剪贴板接口，不支持时尝试文本框复制，并给出复制结果。
@@ -49,7 +61,7 @@ async function copyUrl() {
 
   try {
     let copiedByClipboard = false;
-    if (navigator.clipboard?.writeText) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
         await navigator.clipboard.writeText(shareUrl);
         copiedByClipboard = true;
@@ -61,9 +73,13 @@ async function copyUrl() {
 
     copyCount.value += 1;
     copied.value = true;
-    copyButtonText.value = copyCount.value > 1 ? "复制成功" : "已复制";
-    copyFeedback.value =
-      copyCount.value > 1 ? `已第 ${copyCount.value} 次复制当前网址。` : "已复制当前网址，可发送给朋友了。";
+    if (copyCount.value > 1) {
+      copyButtonText.value = "复制成功";
+      copyFeedback.value = `已第 ${copyCount.value} 次复制当前网址。`;
+    } else {
+      copyButtonText.value = "已复制";
+      copyFeedback.value = "已复制当前网址，可发送给朋友了。";
+    }
     window.clearTimeout(copyResetTimer);
     copyResetTimer = window.setTimeout(function resetCopyFeedback() {
       copied.value = false;

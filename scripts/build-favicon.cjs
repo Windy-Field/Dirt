@@ -7,9 +7,12 @@ async function buildFavicons() {
   const branding = path.join(root, 'assets/branding');
   const source = await fs.readFile(path.join(branding, 'favicon.svg'));
   const sizes = [16, 32, 48];
-  const images = await Promise.all(sizes.map(function renderIcon(size) {
-    return sharp(source, { density: 384 }).resize(size, size).png().toBuffer();
-  }));
+  const imagePromises = [];
+  for (let index = 0; index < sizes.length; index += 1) {
+    const size = sizes[index];
+    imagePromises.push(sharp(source, { density: 384 }).resize(size, size).png().toBuffer());
+  }
+  const images = await Promise.all(imagePromises);
   await fs.writeFile(path.join(branding, 'favicon-16x16.png'), images[0]);
   await fs.writeFile(path.join(branding, 'favicon-32x32.png'), images[1]);
   await sharp(source, { density: 384 }).resize(180, 180).flatten({ background: '#ad342b' })
@@ -20,7 +23,8 @@ async function buildFavicons() {
   header.writeUInt16LE(1, 2);
   header.writeUInt16LE(sizes.length, 4);
   let offset = header.length;
-  sizes.forEach(function writeIconEntry(size, index) {
+  for (let index = 0; index < sizes.length; index += 1) {
+    const size = sizes[index];
     const entry = 6 + index * 16;
     header[entry] = size;
     header[entry + 1] = size;
@@ -29,8 +33,12 @@ async function buildFavicons() {
     header.writeUInt32LE(images[index].length, entry + 8);
     header.writeUInt32LE(offset, entry + 12);
     offset += images[index].length;
-  });
-  await fs.writeFile(path.join(root, 'favicon.ico'), Buffer.concat([header, ...images]));
+  }
+  const iconParts = [header];
+  for (let index = 0; index < images.length; index += 1) {
+    iconParts.push(images[index]);
+  }
+  await fs.writeFile(path.join(root, 'favicon.ico'), Buffer.concat(iconParts));
   console.log('Generated SVG-derived PNG, Apple touch icon and multi-size ICO.');
 }
 

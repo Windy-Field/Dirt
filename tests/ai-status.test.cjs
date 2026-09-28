@@ -6,15 +6,19 @@ const vm = require("node:vm");
 
 const projectRoot = path.resolve(__dirname, "..");
 
-function runBrowserScript(relativePath, additions = {}) {
-  const window = additions.window || {};
-  window.sessionStorage ||= {
+// 在 Node 虚拟浏览器中运行编译后的前端脚本。
+function runBrowserScript(relativePath, additions) {
+  const options = additions || {};
+  const window = options.window || {};
+  if (!window.sessionStorage) {
+    window.sessionStorage = {
     getItem() {
       return null;
     },
     setItem() {},
     removeItem() {},
-  };
+    };
+  }
   const context = vm.createContext({
     AbortSignal,
     CustomEvent,
@@ -22,15 +26,16 @@ function runBrowserScript(relativePath, additions = {}) {
     FileReader: class FileReader {},
     URL,
     console,
-    fetch: additions.fetch,
+    fetch: options.fetch,
     window,
   });
-  const source = fs.readFileSync(path.join(projectRoot, relativePath), "utf8");
+  const sourcePath = path.join(projectRoot, ".runtime", relativePath);
+  const source = fs.readFileSync(sourcePath, "utf8");
   vm.runInContext(source, context, { filename: relativePath });
   return context;
 }
 
-test("status transport failure remains unknown instead of claiming AI is offline", async () => {
+test("status transport failure remains unknown instead of claiming AI is offline", async function testTransportFailure() {
   const browserWindow = new EventTarget();
   browserWindow.location = {
     protocol: "https:",
@@ -40,7 +45,7 @@ test("status transport failure remains unknown instead of claiming AI is offline
 
   const context = runBrowserScript("js/ai-service.js", {
     window: browserWindow,
-    fetch: async () => {
+    fetch: async function fetchStatus() {
       throw new DOMException("Timed out", "TimeoutError");
     },
   });
@@ -51,7 +56,7 @@ test("status transport failure remains unknown instead of claiming AI is offline
   assert.equal(status.checking, true);
 });
 
-test("verified connection failure is displayed as disconnected", () => {
+test("verified connection failure is displayed as disconnected", function testConnectionFailure() {
   const context = runBrowserScript("js/ai-chat.js");
   const classes = new Set();
   const statusElement = {
@@ -63,9 +68,24 @@ test("verified connection failure is displayed as disconnected", () => {
     },
     innerHTML: "",
   };
+  context.document = {
+    querySelector(selector) {
+      if (selector === "#aiStatus") {
+        return statusElement;
+      }
+      return null;
+    },
+  };
   const controller = context.window.NiyunAiChat.create({
-    $: (selector) => (selector === "#aiStatus" ? statusElement : null),
-    $$: () => [],
+    $: function findStatusElement(selector) {
+      if (selector === "#aiStatus") {
+        return statusElement;
+      }
+      return null;
+    },
+    $$: function findStatusElements() {
+      return [];
+    },
     escapeHtml: String,
     renderMarkdown: String,
     showToast() {},
@@ -80,21 +100,32 @@ test("verified connection failure is displayed as disconnected", () => {
   assert.equal(classes.has("checking"), false);
 });
 
-test("failed probe and failed chat are not marked as still checking; success recovers", async () => {
+test("failed probe and failed chat are not marked as still checking; success recovers", async function testRecovery() {
   const browserWindow = new EventTarget();
   browserWindow.location = { protocol: "https:", origin: "https://example.test" };
   const statuses = [];
-  browserWindow.addEventListener("ai-status-change", (event) => statuses.push(event.detail));
+  browserWindow.addEventListener("ai-status-change", function recordStatus(event) {
+    statuses.push(event.detail);
+  });
   let succeeds = false;
   const context = runBrowserScript("js/ai-service.js", {
     window: browserWindow,
-    fetch: async (url) => ({
-      ok: url.endsWith("/status") || succeeds,
-      status: succeeds ? 200 : 500,
-      json: async () => url.endsWith("/status")
-        ? { connected: false, configured: true, verified: true }
-        : succeeds ? { reply: "OK" } : { error: "InternalError", errorCode: "UPSTREAM_HTTP_500" },
-    }),
+    fetch: async function fetchChat(url) {
+      const isStatusRequest = url.endsWith("/status");
+      let responseData = { error: "InternalError", errorCode: "UPSTREAM_HTTP_500" };
+      if (isStatusRequest) {
+        responseData = { connected: false, configured: true, verified: true };
+      } else if (succeeds) {
+        responseData = { reply: "OK" };
+      }
+      return {
+        ok: isStatusRequest || succeeds,
+        status: succeeds ? 200 : 500,
+        json: async function readResponse() {
+          return responseData;
+        },
+      };
+    },
   });
   const status = await context.window.AiService.getStatus();
   assert.equal(Boolean(status.checking), false);
@@ -106,7 +137,7 @@ test("failed probe and failed chat are not marked as still checking; success rec
   assert.equal(statuses.at(-1).connected, true);
 });
 
-test("missing AI configuration is still shown as unavailable", () => {
+test("missing AI configuration is still shown as unavailable", function testMissingConfiguration() {
   const context = runBrowserScript("js/ai-chat.js");
   const classes = new Set();
   const statusElement = {
@@ -118,9 +149,24 @@ test("missing AI configuration is still shown as unavailable", () => {
     },
     innerHTML: "",
   };
+  context.document = {
+    querySelector(selector) {
+      if (selector === "#aiStatus") {
+        return statusElement;
+      }
+      return null;
+    },
+  };
   const controller = context.window.NiyunAiChat.create({
-    $: (selector) => (selector === "#aiStatus" ? statusElement : null),
-    $$: () => [],
+    $: function findStatusElement(selector) {
+      if (selector === "#aiStatus") {
+        return statusElement;
+      }
+      return null;
+    },
+    $$: function findStatusElements() {
+      return [];
+    },
     escapeHtml: String,
     renderMarkdown: String,
     showToast() {},

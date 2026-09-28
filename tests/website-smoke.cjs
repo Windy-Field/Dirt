@@ -1,13 +1,18 @@
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const playwright = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const chromium = playwright.chromium;
 
 async function verifyWebsite() {
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
   try {
-    for (const width of [1440, 375]) {
+    const widths = [1440, 375];
+    for (let widthIndex = 0; widthIndex < widths.length; widthIndex += 1) {
+      const width = widths[widthIndex];
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       const errors = [];
-      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('pageerror', function recordPageError(error) {
+        errors.push(error.message);
+      });
       await page.addInitScript(function disableOpeningForSmokeTest() {
         localStorage.setItem('niyun-opening-animation-enabled', 'false');
       });
@@ -22,21 +27,31 @@ async function verifyWebsite() {
         });
       });
       await page.goto('http://127.0.0.1:5173/');
-      await page.waitForFunction(() => document.querySelectorAll('.map-marker').length > 0);
-      await page.waitForFunction(() => document.querySelectorAll('.quiz-option').length === 4);
+      await page.waitForFunction(function waitForMapMarkers() {
+        return document.querySelectorAll('.map-marker').length > 0;
+      });
+      await page.waitForFunction(function waitForQuizOptions() {
+        return document.querySelectorAll('.quiz-option').length === 4;
+      });
       await page.locator('#openSearch').click();
       await page.locator('#searchInput').fill('临淄');
       await page.locator('#doSearch').click();
       await page.locator('[data-search-id]').first().waitFor();
       await page.locator('#closeSearch').click();
-      await page.waitForFunction(() => !document.querySelector('#searchDialog').open);
+      await page.waitForFunction(function waitForSearchClose() {
+        return !document.querySelector('#searchDialog').open;
+      });
       await page.locator('#openSettings').click();
       await page.locator('input[name="themeMode"][value="light"]').check();
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
       await page.locator('#doneSettings').click();
-      await page.waitForFunction(() => !document.querySelector('#settingsDialog').open);
+      await page.waitForFunction(function waitForSettingsClose() {
+        return !document.querySelector('#settingsDialog').open;
+      });
       await page.locator('[data-course-id="COURSE-02"]').click();
-      await page.waitForFunction(() => document.querySelector('#courseMeta').textContent.includes('2'));
+      await page.waitForFunction(function waitForCourseChange() {
+        return document.querySelector('#courseMeta').textContent.includes('2');
+      });
       await page.locator('.quiz-option').first().click();
       await page.locator('.quiz-form button[type="submit"]').click();
       await page.locator('.quiz-explanation').waitFor();

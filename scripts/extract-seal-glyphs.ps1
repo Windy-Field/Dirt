@@ -81,17 +81,22 @@ $javascript = @'
   window.NiyunSealGlyphs = {
     render(target) {
       if (!target || target.childElementCount) return;
-      ["ni", "yun", "zhi", "tan"].forEach((name) => {
+      const names = ["ni", "yun", "zhi", "tan"];
+      for (let index = 0; index < names.length; index += 1) {
+        const name = names[index];
         const glyph = document.createElementNS(namespace, "path");
         glyph.setAttribute("class", `seal-inscription-glyph glyph-${name}`);
         glyph.setAttribute("d", paths[name]);
         target.appendChild(glyph);
-      });
+      }
     }
   };
 
   function renderSealInscriptions() {
-    document.querySelectorAll(".seal-inscription").forEach(window.NiyunSealGlyphs.render);
+    const targets = document.querySelectorAll(".seal-inscription");
+    for (let index = 0; index < targets.length; index += 1) {
+      window.NiyunSealGlyphs.render(targets[index]);
+    }
   }
 
   renderSealInscriptions();

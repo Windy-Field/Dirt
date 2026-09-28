@@ -13,7 +13,9 @@ if (!fs.existsSync(builtQuizPath)) {
 // assets 的复制可能覆盖刚生成的问答包，因此先保留构建结果，复制后恢复。
 const quizBundle = fs.readFileSync(builtQuizPath);
 
-for (const directory of ["assets", "css", "data", "js", ".runtime"]) {
+const copyDirectories = ["assets", "css", "data", "js", ".runtime"];
+for (let directoryIndex = 0; directoryIndex < copyDirectories.length; directoryIndex += 1) {
+  const directory = copyDirectories[directoryIndex];
   fs.cpSync(path.join(projectRoot, directory), path.join(distRoot, directory), {
     recursive: true,
     force: true,
@@ -23,7 +25,9 @@ for (const directory of ["assets", "css", "data", "js", ".runtime"]) {
 // 校验实际配置引用的媒体，防止构建成功但上线后视频或封面返回 404。
 const mediaContext = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(distRoot, ".runtime/data/media-config.js"), "utf8"), mediaContext);
-for (const key of ["recapVideoUrl", "recapPosterUrl"]) {
+const mediaKeys = ["recapVideoUrl", "recapPosterUrl"];
+for (let keyIndex = 0; keyIndex < mediaKeys.length; keyIndex += 1) {
+  const key = mediaKeys[keyIndex];
   const resource = mediaContext.window.MEDIA_CONFIG.coursePack[key];
   if (!resource) throw new Error(`课程媒体缺少配置：${key}`);
   if (/^https:\/\//.test(resource)) continue;
@@ -42,12 +46,14 @@ const glyphScript = fs.readFileSync(path.join(projectRoot, "js", "seal-glyph-pat
 const glyphDataMatch = glyphScript.match(/const paths = (\{.*?\});/s);
 if (!glyphDataMatch) throw new Error("无法从 js/seal-glyph-paths.js 读取开屏封泥字形。");
 const glyphPaths = JSON.parse(glyphDataMatch[1]);
-const glyphMarkup = ["ni", "yun", "zhi", "tan"]
-  .map(function renderStaticSealGlyph(name) {
+const glyphNames = ["ni", "yun", "zhi", "tan"];
+const glyphMarkupParts = [];
+for (let index = 0; index < glyphNames.length; index += 1) {
+  const name = glyphNames[index];
     if (!glyphPaths[name]) throw new Error(`开屏封泥缺少 ${name} 字形。`);
-    return `                <path class="seal-inscription-glyph glyph-${name}" d="${glyphPaths[name]}"></path>`;
-  })
-  .join("\n");
+  glyphMarkupParts.push(`                <path class="seal-inscription-glyph glyph-${name}" d="${glyphPaths[name]}"></path>`);
+}
+const glyphMarkup = glyphMarkupParts.join("\n");
 const version = Date.now().toString(36);
 let html = fs.readFileSync(sourcePage, "utf8");
 

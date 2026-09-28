@@ -12,9 +12,12 @@ if (!process.env.DB_HOST || !process.env.DB_NAME || !process.env.DB_USER || !pro
 function loadBrowserData(fileNames) {
   const context = { window: {} };
   vm.createContext(context);
-  fileNames.forEach((fileName) =>
-    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", fileName), "utf8"), context),
-  );
+  for (let index = 0; index < fileNames.length; index += 1) {
+    const fileName = fileNames[index];
+    const filePath = path.join(__dirname, "..", fileName);
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    vm.runInContext(fileContent, context);
+  }
   return context.window;
 }
 
@@ -33,7 +36,9 @@ async function main() {
   try {
     // 整批导入共用事务；任一表失败时回滚，避免展示数据只更新一部分。
     await connection.beginTransaction();
-    for (const site of data.SEAL_KNOWLEDGE.sites) {
+    const sites = data.SEAL_KNOWLEDGE.sites;
+    for (let siteIndex = 0; siteIndex < sites.length; siteIndex += 1) {
+      const site = sites[siteIndex];
       await connection.execute(
         `
         INSERT INTO sites (id, city, name, period, tags, count, x, y, seals, admin, note, description)
@@ -56,7 +61,9 @@ async function main() {
         ],
       );
     }
-    for (const relic of data.MOCK_DATA.relics) {
+    const relics = data.MOCK_DATA.relics;
+    for (let relicIndex = 0; relicIndex < relics.length; relicIndex += 1) {
+      const relic = relics[relicIndex];
       await connection.execute(
         `
         INSERT INTO relics (id, name, inscription, period, location, category, tone, value, image_url, summary)
@@ -77,7 +84,9 @@ async function main() {
         ],
       );
     }
-    for (const course of data.MOCK_DATA.courses) {
+    const courses = data.MOCK_DATA.courses;
+    for (let courseIndex = 0; courseIndex < courses.length; courseIndex += 1) {
+      const course = courses[courseIndex];
       await connection.execute(
         `
         INSERT INTO courses (id, title, lesson, duration, description, video_url, poster_url)
@@ -95,20 +104,25 @@ async function main() {
         ],
       );
     }
-    for (const [index, work] of data.MOCK_DATA.creativeWorks.entries()) {
+    const creativeWorks = data.MOCK_DATA.creativeWorks;
+    for (let workIndex = 0; workIndex < creativeWorks.length; workIndex += 1) {
+      const work = creativeWorks[workIndex];
       await connection.execute(
         `
         INSERT INTO creative_works (id, name, category, mark, description, sort_order)
         VALUES (?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE name=VALUES(name), category=VALUES(category), mark=VALUES(mark), description=VALUES(description), sort_order=VALUES(sort_order)
       `,
-        [work.id, work.name, work.category, work.mark, work.description, index],
+        [work.id, work.name, work.category, work.mark, work.description, workIndex],
       );
     }
     const starterQuestions = data.MOCK_DATA.questions;
-    const [[questionCount]] = await connection.query("SELECT COUNT(*) AS total FROM questions");
+    const questionQueryResult = await connection.query("SELECT COUNT(*) AS total FROM questions");
+    const questionRows = questionQueryResult[0];
+    const questionCount = questionRows[0];
     if (Number(questionCount.total) === 0) {
-      for (const question of starterQuestions) {
+      for (let questionIndex = 0; questionIndex < starterQuestions.length; questionIndex += 1) {
+        const question = starterQuestions[questionIndex];
         await connection.execute(
           `
           INSERT INTO questions (question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, difficulty)

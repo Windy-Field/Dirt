@@ -41,7 +41,8 @@ const correctCount = computed(function getCorrectCount() {
 const submitText = computed(function getSubmitText() {
   if (submitting.value) return "正在判题";
   if (!answered.value) return "确认答案";
-  return index.value === total.value - 1 ? "查看结果" : "下一题";
+  if (index.value === total.value - 1) return "查看结果";
+  return "下一题";
 });
 const resultTitle = computed(function getResultTitle() {
   if (score.value === 100) return "金石通识者";
@@ -51,11 +52,14 @@ const resultTitle = computed(function getResultTitle() {
 });
 const correctDisplayKey = computed(function getCorrectDisplayKey() {
   if (!answerResult.value || !currentQuestion.value) return "";
-  return (
-    currentQuestion.value.displayOptions.find(
-      (option) => option.originalKey === answerResult.value.correctAnswer,
-    )?.displayKey || answerResult.value.correctAnswer
-  );
+  const displayOptions = currentQuestion.value.displayOptions;
+  for (let index = 0; index < displayOptions.length; index += 1) {
+    const option = displayOptions[index];
+    if (option.originalKey === answerResult.value.correctAnswer) {
+      return option.displayKey;
+    }
+  }
+  return answerResult.value.correctAnswer;
 });
 
 // 进入新题前清空上题选择和解析，分数则继续保留。
@@ -72,6 +76,12 @@ function goToNextQuestion() {
   index.value += 1;
 }
 
+// 保存用户当前选择的答案和对应题号，防止切题后误用旧选择。
+function selectAnswer(answer) {
+  selectedAnswer.value = answer;
+  selectedQuestionId.value = currentQuestion.value.id;
+}
+
 // 开始新一轮：取题、打乱选项并重置成绩；失败时显示重试提示。
 async function loadQuiz() {
   loading.value = true;
@@ -79,12 +89,17 @@ async function loadQuiz() {
   showingResult.value = false;
   try {
     const round = await window.ApiService.startQuiz();
-    questions.value = round.questions.map((question) => ({
-      ...question,
-      renderId: `${++questionRenderId}-${question.id}`,
-      hasLongOption: hasLongOption(question),
-      displayOptions: shuffleOptions(question),
-    }));
+    const preparedQuestions = [];
+    for (let questionIndex = 0; questionIndex < round.questions.length; questionIndex += 1) {
+      const question = round.questions[questionIndex];
+      questionRenderId += 1;
+      const preparedQuestion = Object.assign({}, question);
+      preparedQuestion.renderId = `${questionRenderId}-${question.id}`;
+      preparedQuestion.hasLongOption = hasLongOption(question);
+      preparedQuestion.displayOptions = shuffleOptions(question);
+      preparedQuestions.push(preparedQuestion);
+    }
+    questions.value = preparedQuestions;
     index.value = 0;
     score.value = 0;
     scorePerQuestion.value = round.scorePerQuestion;
@@ -112,12 +127,14 @@ async function submit() {
   const questionId = currentQuestion.value.id;
   try {
     const result = await window.ApiService.answerQuiz(questionId, selectedAnswer.value);
-    if (currentQuestion.value?.id !== questionId) return;
+    if (!currentQuestion.value || currentQuestion.value.id !== questionId) return;
     answerResult.value = result;
     score.value += result.earnedScore;
-    feedback.value = result.correct
-      ? `当前得分 ${score.value} 分。`
-      : `当前得分 ${score.value} 分，看看解析再继续。`;
+    if (result.correct) {
+      feedback.value = `当前得分 ${score.value} 分。`;
+    } else {
+      feedback.value = `当前得分 ${score.value} 分，看看解析再继续。`;
+    }
   } catch (error) {
     feedback.value = error.message || "提交失败，请稍后重试。";
   } finally {
@@ -170,10 +187,7 @@ onMounted(loadQuiz);
           :answer-result="answerResult"
           :correct-display-key="correctDisplayKey"
           :answered="answered"
-          @update:selected-answer="
-            selectedAnswer = $event;
-            selectedQuestionId = currentQuestion.id;
-          "
+          @update:selected-answer="selectAnswer"
         />
       </div>
       <p id="quizFeedback" class="quiz-feedback" role="status" aria-live="polite">{{ feedback }}</p>

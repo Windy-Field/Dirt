@@ -17,7 +17,9 @@ await build({
       entry: path.join(root, "scripts/three-entry.js"),
       name: "THREE",
       formats: ["iife"],
-      fileName: () => "three.js",
+      fileName: function getThreeBundleFileName() {
+        return "three.js";
+      },
     },
     rollupOptions: {
       output: {

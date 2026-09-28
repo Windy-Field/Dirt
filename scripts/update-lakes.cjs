@@ -6,7 +6,14 @@ async function updateWeishanLake() {
   const response = await fetch(source);
   if (!response.ok) throw new Error(`Lake source HTTP ${response.status}`);
   const data = await response.json();
-  const feature = data.features.find(item => item.properties.name === 'Weishan Hu');
+  let feature = null;
+  for (let index = 0; index < data.features.length; index += 1) {
+    const currentFeature = data.features[index];
+    if (currentFeature.properties.name === 'Weishan Hu') {
+      feature = currentFeature;
+      break;
+    }
+  }
   if (!feature || feature.geometry.type !== 'Polygon') throw new Error('Weishan polygon missing');
   await fs.writeFile(path.join(__dirname, '../data/shandong-lakes.js'),
     `/* Natural Earth 1:10m lakes, public domain. Source: ${source}\n * Generalized lake outline; displayed depth is illustrative. */\nwindow.SHANDONG_LAKES = ${JSON.stringify([{ name: '微山湖', rings: feature.geometry.coordinates }])};\n`);
