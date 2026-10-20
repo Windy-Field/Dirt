@@ -1,6 +1,7 @@
-/* Natural Earth 1:10m rivers/lake centerlines, public domain.
- * Source: https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_lake_centerlines.geojson
- * Generalized centerlines; channel width/depth are illustrative, not measured. */
+/* Natural Earth 1:1000 万河流中心线，公共领域数据
+ * 来源：https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_lake_centerlines.geojson
+ * 河槽宽度和深度为展示参数
+ */
 window.SHANDONG_RIVERS = [
   {
     "name": "Huang",

@@ -1,5 +1,5 @@
-// 只导出地图和牌具实际使用的接口；内部依赖由构建工具自动保留。
-// 新增 THREE.xxx 调用时，在这里补上对应名称，再运行 npm run build:three。
+// 只导出地图和牌具实际使用的接口；内部依赖由构建工具自动保留
+// 新增 THREE.xxx 调用时，在这里补上对应名称，再运行 npm run build:three
 export {
   BoxGeometry,
   BufferGeometry,

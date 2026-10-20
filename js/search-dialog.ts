@@ -89,7 +89,7 @@ const NiyunSearchDialog = (function registerSearchDialog() {
                     { opacity: 0, transform: "translateY(8px) scale(.98)" },
                 ], { duration: 180, easing: "ease-in", fill: "both" });
             }
-            // 等关闭动画结束再关弹窗，动画被取消时不强行继续关闭。
+            // 关闭动画完成后再关闭弹窗，取消动画时保留弹窗
             async function close() {
                 let valueResult13;
                 const value18 = dialog;
@@ -115,7 +115,7 @@ const NiyunSearchDialog = (function registerSearchDialog() {
                 dialog.classList.remove("is-closing");
                 dialog.close();
             }
-            // 同时搜索藏品和区县图录；只展示最新请求，清空后不让旧结果回来。
+            // 搜索藏品和区县图录，按请求编号筛选最新结果
             async function search() {
                 if (!input || !results) {
                     return;
@@ -138,7 +138,7 @@ const NiyunSearchDialog = (function registerSearchDialog() {
                     }
                     return;
                 }
-                // 后发起的搜索优先，清空输入后也不再显示旧结果。
+                // 丢弃早先发起的搜索结果
                 if (requestId !== searchRequest) {
                     return;
                 }

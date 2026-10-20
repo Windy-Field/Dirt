@@ -1,6 +1,6 @@
 # 封泥牌具贴图
 
-Three.js 负责牌具的形状、圆角、材质和光照，这里的图片只负责牌面图案。贴图缺失时，网页会显示占位材质，模型仍能旋转和切换。
+Three.js 负责牌具的形状、圆角、材质和光照，这里的图片只负责牌面图案。贴图缺失时，网页会显示占位材质，模型仍能旋转和切换
 
 ```text
 assets/textures/
@@ -21,12 +21,10 @@ assets/textures/
 - 色彩空间：sRGB
 - 当前内嵌构建支持 PNG 和 JPEG
 
-重要文字和印文与边缘至少留出画布宽度的 6%。圆角和立体阴影由模型生成，不必画进贴图。
+重要文字和印文距边缘至少留出画布宽度的 6%，圆角和阴影由模型生成
 
-贴图路径集中在 [data/media-config.ts](../../data/media-config.ts) 的 `textures` 配置中。保留文件名时直接覆盖图片；更换文件名时只改配置，不要到 `js/three-showcase.ts` 中查找路径。外部贴图必须使用 HTTPS，并将主机名加入 `allowedExternalHosts`。
+贴图路径位于 [data/media-config.ts](../../data/media-config.ts) 的 `textures` 中。替换同名图片可直接覆盖，更名后同步更新配置。外部贴图使用 HTTPS，并将主机名加入 `allowedExternalHosts`
 
-麻将没有侧面图片时，程序会生成暖白木纹、灰蓝边线和朱砂细线的默认侧面。
+麻将没有侧面图片时，程序会生成暖白木纹、灰蓝边线和朱砂细线的默认侧面
 
-直接双击 `index.html` 时，WebGL 从 `data/texture-inline.js` 读取内嵌贴图；通过 HTTP 或公网访问时，则加载这里的普通图片。`npm run build` 会执行 `scripts/build-inline-textures.js`，重新内嵌脚本中登记的六张默认贴图。新增纹理配置时，也要在该构建脚本中补上路径和 MIME 类型。
-
-贴图会公开给访客，不要放入私密水印、凭据或没有使用许可的素材。
+直接双击 `index.html` 时，WebGL 从 `data/texture-inline.js` 读取内嵌贴图；通过 HTTP 或公网访问时，则加载这里的普通图片。`npm run build` 会执行 `scripts/build-inline-textures.js`，重新内嵌脚本中登记的六张默认贴图。新增纹理配置时，也要在该构建脚本中补上路径和 MIME 类型

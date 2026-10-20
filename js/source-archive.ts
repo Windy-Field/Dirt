@@ -18,7 +18,7 @@ const NiyunSourceArchive = (function registerSourceArchive() {
             const showToast = source1.showToast;
             const getVisibleSites = source1.getVisibleSites;
             const navigateToMapIndex = source1.navigateToMapIndex;
-            // 所有图录入口共用这个流程：筛选内容、打开窗口，再聚焦搜索框。
+            // 所有图录入口共用这个流程：筛选内容、打开窗口，再聚焦搜索框
             function openArchive(query?) {
                 if (query === undefined) {
                     query = "";
@@ -55,7 +55,7 @@ const NiyunSourceArchive = (function registerSourceArchive() {
                 sourceDialog.classList.remove("is-closing");
                 sourceDialog.close();
             }
-            // 等弹窗排版完成后定位卡片，否则滚动位置可能算不准。
+            // 等弹窗排版完成后定位卡片，否则滚动位置可能算不准
             function focusCard(siteId: number, message?) {
                 if (message === undefined) {
                     message = "";

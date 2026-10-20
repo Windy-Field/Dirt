@@ -6,7 +6,7 @@ const vm = require("node:vm");
 
 const projectRoot = path.resolve(__dirname, "..");
 
-// 在 Node 虚拟浏览器中运行编译后的前端脚本。
+// 在 Node 虚拟浏览器中运行编译后的前端脚本
 function runBrowserScript(relativePath, additions) {
   const options = additions || {};
   const window = options.window || {};

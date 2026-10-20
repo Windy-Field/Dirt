@@ -56,7 +56,7 @@ interface ApiCourse extends Course {
     const apiUrl = function apiUrl(path) {
         return ("" + (baseUrl) + (path));
     };
-    // GET 请求统一从这里读取 JSON；接口报错时把错误交给页面处理。
+    // GET 请求统一从这里读取 JSON；接口报错时把错误交给页面处理
     async function request(path: string): Promise<any> {
         const response = await fetch(apiUrl(path));
         if (!response.ok) {
@@ -66,7 +66,7 @@ interface ApiCourse extends Course {
         }
         return response.json();
     }
-    // 将提交内容转换为 JSON，并统一检查服务器是否成功接收。
+    // 将提交内容转换为 JSON，并统一检查服务器是否成功接收
     async function post(path: string, body: any): Promise<any> {
         const response = await fetch(apiUrl(path), {
             method: "POST",
@@ -80,7 +80,7 @@ interface ApiCourse extends Course {
         }
         return response.json();
     }
-    // 未配置数据库时保留模拟数据，便于本地做页面开发；上线时打开 USE_DATABASE。
+    // 根据 USE_DATABASE 选择本地数据或数据库接口
     const copyItems = function copyItems(items: any[]): any[] {
         let valueResult7;
         const items7 = items;
@@ -96,7 +96,7 @@ interface ApiCourse extends Course {
         valueResult7 = result10;
         return valueResult7;
     };
-    // 常用媒体配置按课程 id 补充视频、课件等公开资源，数据库和 mock 模式共用。
+    // 常用媒体配置按课程 id 补充视频、课件等公开资源，数据库和 mock 模式共用
     const applyCourseMedia = function applyCourseMedia(items: Course[]): Course[] {
         let valueResult11;
         const items12 = items;
@@ -136,7 +136,7 @@ interface ApiCourse extends Course {
         valueResult11 = result15;
         return valueResult11;
     };
-    // 先复制数组，再从后往前随机交换，避免打乱原始题库。
+    // 先复制数组，再从后往前随机交换，避免打乱原始题库
     function shuffle(items: any[]): any[] {
         let valueResult17;
         const items20 = [];
@@ -152,7 +152,7 @@ interface ApiCourse extends Course {
         }
         return result;
     }
-    // 模拟模式与云端接口返回相同结构，切换数据库时页面逻辑无需改变。
+    // 将本地题目整理成与云端接口一致的结构
     function startMockQuiz() {
         const questions = shuffle(copyItems(window.MOCK_DATA.questions)).slice(0, 10);
         if (questions.length < 10) {
@@ -203,7 +203,7 @@ interface ApiCourse extends Course {
             earnedScore: valueResult23,
         };
     }
-    // 页面只调用 ApiService；这里统一处理“本地 mock / 云端数据库”的差异。
+    // 向页面提供统一的数据接口
     window.ApiService = {
         async getStats() {
             let valueResult25;

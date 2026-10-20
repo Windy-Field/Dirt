@@ -1,9 +1,9 @@
-/* 印小灵常驻宠物资源入口：以后替换图片时只修改这里。 */
+/* 印小灵常驻宠物资源入口：以后替换图片时只修改这里 */
 window.AI_PET_CONFIG = {
     enabled: true,
     allowDrag: true,
     dynamicGreeting: true,
-    // 动态语录循环：显示 5 秒，隐藏 3 秒后切换下一句。
+    // 动态语录循环：显示 5 秒，隐藏 3 秒后切换下一句
     greetingTiming: {
         visibleMs: 5000,
         hiddenMs: 3000,

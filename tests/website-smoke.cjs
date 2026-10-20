@@ -16,7 +16,7 @@ async function verifyWebsite() {
       await page.addInitScript(function disableOpeningForSmokeTest() {
         localStorage.setItem('niyun-opening-animation-enabled', 'false');
       });
-      // These tests exercise the UI without calling a paid upstream service.
+      // 使用模拟响应测试 AI 界面
       await page.route('**/api/ai/**', async function mockAiResponse(route) {
         const statusRequest = route.request().url().endsWith('/status');
         await route.fulfill({

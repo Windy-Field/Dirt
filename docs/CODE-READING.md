@@ -2,9 +2,9 @@
 
 ## 入口与加载顺序
 
-从 `index.html` 的底部脚本列表开始阅读。项目主体使用 TypeScript 源码，编译后的普通浏览器脚本位于 `.runtime/`，模块通过 `window.Niyun*` 注册工厂，`app.ts` 注入依赖并启动。这样根目录网页可以保留 `file://` 预览方式；不要直接把这些脚本改成 ES Modules。
+从 `index.html` 底部的脚本列表开始阅读。TypeScript 编译结果位于 `.runtime/`，模块通过 `window.Niyun*` 注册，`app.ts` 传入所需工具并启动页面。这种加载方式支持双击网页预览
 
-`js/theme-bootstrap.ts` 在样式表之前恢复主题，浏览器实际加载 `.runtime/js/theme-bootstrap.js`。配置和数据先加载，服务和控制器随后注册，`app.ts` 最后组装页面。问答区是独立的 Vue 应用，由 `js/quiz/main.js` 挂载。
+`js/theme-bootstrap.ts` 在样式表之前恢复主题，浏览器实际加载 `.runtime/js/theme-bootstrap.js`。配置和数据先加载，服务和控制器随后注册，`app.ts` 最后组装页面。问答区是独立的 Vue 应用，由 `js/quiz/main.js` 挂载
 
 ## 按功能阅读
 
@@ -25,37 +25,36 @@
 | 服务端 | `server.js`、`server/db.js` | 静态资源、AI 代理、数据库与问答 API |
 | 数据初始化 | `db/schema.sql`、`db/seed.js` | 手动维护任务，导入采用事务，不在访问页面时运行 |
 
-## 不应丢失的约定
+## 维护约定
 
-- AI 的 `connected` 分别用 `true`、`false`、`null` 表示成功、失败、未知；`configured` 不代表上游可用。
-- AI 状态接口会调用真实应用并缓存结果，可能消耗额度。不要为了界面刷新而频繁调用。
-- 地图覆盖物的高度必须与显示网格一致；修改顶点后必须标记 `position.needsUpdate`。
-- 请求编号用于丢弃过期结果，不代表网络请求已取消。
-- 数据生成的 HTML 需要转义；媒体地址通过 `MediaSecurity.resolve` 校验。
-- 浏览器配置全部公开。API Key 和数据库凭据只放服务端环境变量，不写入前端或文档。
+- AI 的 `connected` 用 `true`、`false`、`null` 表示成功、失败、未知，`configured` 表示配置是否齐全
+- AI 状态接口调用百炼应用并缓存结果，调用会消耗额度，服务器在线检查使用 `/api/health`
+- 地图覆盖物的高度必须与显示网格一致；修改顶点后必须标记 `position.needsUpdate`
+- 请求编号用于识别和丢弃过期响应，取消请求需单独处理
+- 数据生成的 HTML 需要转义；媒体地址通过 `MediaSecurity.resolve` 校验
+- 浏览器配置全部公开。API Key 和数据库凭据只放服务端环境变量，不写入前端或文档
 
 ## 样式与数据
 
-字号和行距不再提供用户调整，正文默认值固定在 `css/02-content-layout.css`。开屏开关位于设置面板的“动态效果”分组。
+正文字号和行距在 `css/02-content-layout.css` 中设置，开屏开关位于设置面板的“动态效果”分组
 
-鼠标尾迹偏好单独保存在 `niyun-cursor-trail` 中，不属于 `app.js` 的显示设置对象。尾迹模块通过 `media-settings-reset` 响应“恢复默认”。窄屏、触屏、系统减少动态效果或页面动效为 0 时，控件锁定关闭；设备限制解除后仍使用原先保存的偏好。
+鼠标尾迹设置保存在 `niyun-cursor-trail` 中，通过 `media-settings-reset` 响应“恢复默认”。窄屏、触屏、系统减少动态效果或页面动效为 0 时，控件锁定关闭；限制解除后恢复已保存的设置
 
-`css/tokens.css` 定义主题和尺寸变量，`01` 至 `06` 样式表按顺序叠加。相同选择器可能是有意覆盖，移动规则或合并媒体查询前应检查最终计算样式。
+`css/tokens.css` 定义主题和尺寸变量，`01` 至 `06` 样式表按顺序叠加。相同选择器可能是有意覆盖，移动规则或合并媒体查询前应检查最终计算样式
 
-`data/media-config.ts` 管理媒体地址与允许的外站；`data/ai-pet-config.ts`、`data/3d-products.ts`、`data/shandong-terrain.ts` 管理对应功能配置。史料、题目和地理坐标属于内容数据，不应为了代码格式整理改动事实值。
+`data/media-config.ts` 管理媒体地址与允许的外站；`data/ai-pet-config.ts`、`data/3d-products.ts`、`data/shandong-terrain.ts` 管理对应功能配置
 
 ## 生成文件与发布
 
-- `js/vendor/three.js`：由 `scripts/build-three.mjs` 生成，导出入口为 `scripts/three-entry.js`。
-- `data/texture-inline.js`：由 `scripts/build-inline-textures.js` 生成。
-- `js/seal-glyph-paths.js`：由 `scripts/extract-seal-glyphs.ps1` 生成，修改逻辑应先修改生成模板。
-- `dist/`、`deploy/fc/dist/`、FC 服务端副本和 `releases/`：通过构建及打包同步，不单独手改。
-- `.runtime/`：由 `npm run compile:frontend` 生成的浏览器 JavaScript，不单独手改，也不要删除后直接双击 `index.html`。
-- DEM 内嵌数组、行政区坐标和二进制资源不做逐项注释。
+- `js/vendor/three.js`：由 `scripts/build-three.mjs` 生成，导出入口为 `scripts/three-entry.js`
+- `data/texture-inline.js`：由 `scripts/build-inline-textures.js` 生成
+- `js/seal-glyph-paths.js`：由 `scripts/extract-seal-glyphs.ps1` 生成，修改逻辑应先修改生成模板
+- `dist/`、`deploy/fc/dist/`、FC 服务端副本和 `releases/`：通过构建及打包同步
+- `.runtime/`：由 `npm run compile:frontend` 生成，双击 `index.html` 前需完成编译
 
-`npm run package:fc` 执行语法检查、生产构建、运行依赖安装和压缩包校验，不执行线上部署。包中不包含 `.env`，线上配置仍由 FC 环境变量提供。
+`npm run package:fc` 执行语法检查、生产构建、运行依赖安装和压缩包校验，不执行线上部署。包中不包含 `.env`，线上配置仍由 FC 环境变量提供
 
-字形提取脚本含 UTF-8 中文，使用 PowerShell 7 执行：`pwsh -NoProfile -File scripts/extract-seal-glyphs.ps1`。旧版 Windows PowerShell 默认编码可能无法正确解析。
+字形提取脚本含 UTF-8 中文，使用 PowerShell 7 执行：`pwsh -NoProfile -File scripts/extract-seal-glyphs.ps1`。旧版 Windows PowerShell 默认编码可能无法正确解析
 
 ## 验证
 
@@ -65,8 +64,6 @@ node --test tests/*.test.cjs
 npm run build
 ```
 
-`tests/terrain-browser.cjs` 使用 Playwright 和 sharp，连接本地 `127.0.0.1:5173`，验证地图画布及移动端双触点。它们不是项目运行依赖；可以通过 `PLAYWRIGHT_MODULE`、`SHARP_MODULE` 指定已有安装路径。
+`tests/terrain-browser.cjs` 使用 Playwright 和 sharp，连接本地 `127.0.0.1:5173`，验证地图画布及移动端双触点。测试依赖单独安装，也可通过 `PLAYWRIGHT_MODULE`、`SHARP_MODULE` 指定已有安装路径
 
-`node tests/cursor-debris.cjs` 使用 Playwright 检查尾迹生成、清理、控件和设备限制，无需启动网站服务；可通过 `PLAYWRIGHT_MODULE` 指定已有安装路径。该测试不是 `*.test.cjs`，需要单独执行。
-
-本轮整理保留常用简短的 `map`、`filter`、Promise 兜底和参数转发箭头函数。复杂回调采用具名函数，注释用于说明约束、时序和原因，不逐行复述代码。
+`node tests/cursor-debris.cjs` 使用 Playwright 检查尾迹生成、清理、控件和设备限制，测试自行加载页面；可通过 `PLAYWRIGHT_MODULE` 指定已有安装路径。此脚本需单独执行

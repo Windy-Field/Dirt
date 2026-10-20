@@ -1,7 +1,7 @@
 (function setupAnalytics() {
     const config = window.APP_CONFIG || {};
     const websiteId = String(config.UMAMI_WEBSITE_ID || "").trim();
-    // 没填 Website ID 就视为未启用；直接双击 HTML 预览时也不统计，避免把本地调试算成访客。
+    // 配置 Website ID 且通过 HTTP 访问时启用统计
     if (!websiteId || window.location.protocol === "file:") {
         return;
     }
@@ -11,24 +11,23 @@
         parsedUrl = new URL(scriptUrl, window.location.href);
     }
     catch {
-        // 地址写错时安静退出，不让统计配置影响网站的其他功能。
+        // 地址无效时跳过统计
         return;
     }
-    // 统计数据可能包含访问路径等信息，因此只允许通过加密的 HTTPS 连接发送。
+    // 统计数据可能包含访问路径等信息，因此只允许通过加密的 HTTPS 连接发送
     if (parsedUrl.protocol !== "https:") {
         return;
     }
-    // 这里等价于 Umami 后台给出的那段嵌入代码，只是改成按配置决定是否加载。
+    // 按站点配置创建 Umami 脚本
     const script = document.createElement("script");
     script.defer = true;
     script.src = parsedUrl.href;
     script.dataset.websiteId = websiteId;
-    // 访客在浏览器中开启“请勿跟踪”后，Umami 会尊重该选择，不记录这次访问。
+    // 遵循浏览器的“请勿跟踪”设置
     script.dataset.doNotTrack = "true";
     const domains = String(config.UMAMI_DOMAINS || "").trim();
     if (domains) {
         script.dataset.domains = domains;
     }
-    // 放入 head 后浏览器才会下载统计脚本；defer 保证它不会挡住页面内容加载。
     document.head.appendChild(script);
 }());

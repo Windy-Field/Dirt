@@ -176,7 +176,7 @@ const NiyunPageEffects = (function registerPageEffects() {
                                 valueResult23 = value25.call(value24, "aria-valuetext", valueResult25);
                             }
                         }
-                        // 只在下一帧统一处理滚动，避免拖动页面时重复触发布局和绘制。
+                        // 只在下一帧统一处理滚动，避免拖动页面时重复触发布局和绘制
                         if (!prefersReducedMotion()) {
                             const shift = Math.min(scrollTop, window.innerHeight) / window.innerHeight;
                             const settings = getSettings();
@@ -401,7 +401,7 @@ const NiyunPageEffects = (function registerPageEffects() {
                     });
                     frameId = requestAnimationFrame(animateDust);
                 }
-                // 浏览器负责懒加载；捕获 load 事件也能处理之后插入的课件图片。
+                // 浏览器负责懒加载；捕获 load 事件也能处理之后插入的课件图片
                 document.addEventListener("load", function handleLoad(event) {
                     if (event.target instanceof HTMLImageElement) {
                         (event.target as HTMLElement).classList.add("loaded");

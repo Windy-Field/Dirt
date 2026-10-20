@@ -1,6 +1,6 @@
 (function initializeWebsite() {
-    // ==================== 01. 通用工具和页面状态 ====================
-    // $ 查找一个元素，$$ 查找多个元素并转成数组，后面所有板块都会使用。
+    // 01. 通用工具和页面状态
+    // $ 查找一个元素，$$ 查找多个元素并转成数组，后面所有板块都会使用
     const findElement = function findElement(selector: string, scope?: ParentNode): HTMLElement {
         if (scope === undefined) {
             scope = document;
@@ -13,27 +13,24 @@
         }
         return Array.from(scope.querySelectorAll(selector)) as HTMLElement[];
     };
-    // 这些小工具和基础状态由多个功能模块共享，因此保留在入口文件中统一提供。
     let visibleSites: Site[] = [];
-    // 改名后启用新的会话命名空间，避免旧会话带回历史 AI 名称。
     const aiSessionStorageKey = "niyun-yinxiaoling-ai-session";
     window.sessionStorage.removeItem("nimeng-ai-session");
     /*
-     * ==================== 显示设置参数区 ====================
-     * 调整设置范围、默认值和每档效果时，只修改这里，不要到事件函数里寻找数字。
+     * 显示设置的范围、步长和默认值
      */
-    // 当前项目只写入这一项；数组中的旧键仅用于一次性迁移。
+    // 读取旧键后，将设置迁移到当前存储键
     const settingsStorageKey = "niyun-display-settings";
     const legacySettingsStorageKeys = ["nimeng-display-settings", "niyun-settings"];
     const openingAnimationStorageKey = "niyun-opening-animation-enabled";
     const systemPrefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // 导航时钟与弹窗动画：时间单位均为毫秒。
+    // 导航时钟与弹窗动画：时间单位均为毫秒
     const interfaceConfig: InterfaceConfig = {
         clockLocale: "zh-CN",
         clockRefreshInterval: 1000,
         clockFormat: { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false },
     };
-    // 地图点位配置：[经度, 纬度]。区县坐标优先，城市坐标用于缺少区县时兜底。
+    // 地图点位使用 [经度, 纬度]，缺少区县坐标时使用城市坐标
     const mapCoordinates = {
         cities: {
             滨州: [117.97, 37.38],
@@ -114,7 +111,7 @@
     function readCssValue(variableName) {
         return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
     }
-    // 从样式配置读取动画参数，弹窗等交互就不必各自写一套时间和曲线。
+    // 从样式变量读取动画时长和曲线
     function runElementAnimation(element, keyframes, durationVariable, easingVariable) {
         if (!element) {
             return null;
@@ -140,14 +137,13 @@
             fill: "both",
         });
     }
-    // 动态设置：范围、步长、默认值和单位相互独立，便于以后分别调整。
     const motionSettingRanges = {
         pageMotion: { min: 0, max: 100, step: 10, defaultValue: 60, unit: "%" },
         cardTilt: { min: 0, max: 6, step: 0.5, defaultValue: 4, unit: "°" },
         backgroundDust: { min: 0, max: 64, step: 4, defaultValue: 16, unit: "粒" },
         backgroundDustSpeed: { min: 0, max: 200, step: 5, defaultValue: 100, initialValue: 25, unit: "%" },
     };
-    // 动态设置到底层视觉参数的换算边界。
+    // 将设置值换算为页面动效参数
     const motionSettingEffects = {
         cardLiftMax: 5,
     };
@@ -222,7 +218,7 @@
         if (!currentSettings && legacySettings) {
             settingsNeedMigration = true;
         }
-        // 新增速度设置首次使用时从 25% 开始；“恢复默认”仍回到 100%。
+        // 新增速度设置首次使用时从 25% 开始；“恢复默认”仍回到 100%
         if (savedSettings.dustSpeed === undefined) {
             let valueResult23;
             if (systemPrefersReducedMotion) {
@@ -234,7 +230,7 @@
             savedSettings.dustSpeed = valueResult23;
             settingsNeedMigration = true;
         }
-        // 兼容旧版“微尘强度 0～100%”：按比例迁移为“微尘数量 0～32 粒”。
+        // 兼容旧版“微尘强度 0～100%”：按比例迁移为“微尘数量 0～32 粒”
         if (savedSettings.dustQuantity === undefined && savedSettings.dustIntensity !== undefined) {
             savedSettings.dustQuantity =
                 Math.round(((Number(savedSettings.dustIntensity) / 100) * motionSettingRanges.backgroundDust.max) /
@@ -254,7 +250,7 @@
         }
         userSettings = Object.assign({}, defaultSettings, { dustSpeed: valueResult25 });
     }
-    /* 必须由 JavaScript 计算的动态视觉参数；CSS 外观参数统一放在 tokens.css。 */
+    /* 必须由 JavaScript 计算的动态视觉参数；CSS 外观参数统一放在 tokens.css */
     const visualEffects = {
         rippleLifetime: 600, // 点击波纹保留时间（毫秒）
         searchFocusDelay: 700, // 平滑滚动后移动焦点的等待时间（毫秒）
@@ -282,7 +278,7 @@
             return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char];
         });
     };
-    // 数据库中的地址只能用于图片或视频，拒绝 javascript: 等危险协议。
+    // 数据库中的地址只能用于图片或视频，拒绝 javascript: 等危险协议
     const safeResourceUrl = function safeResourceUrl(value) {
         let valueResult27;
         const value24 = window.MediaSecurity;
@@ -295,7 +291,7 @@
         }
         return valueResult27 || "";
     };
-    // Logo 使用可选图片；配置为空或图片加载失败时保留当前“泥”字印章。
+    // Logo 使用可选图片；配置为空或图片加载失败时保留当前“泥”字印章
     function applyBrandLogo() {
         let valueResult29;
         const value27 = window.MEDIA_CONFIG;
@@ -349,7 +345,7 @@
         dark: "dark",
         auto: "auto",
     };
-    // 自动主题时间由 index.html 在首帧绘制前提供，保证刷新前后使用同一判断标准。
+    // 使用 theme-bootstrap.ts 设置的昼夜分界时间
     const themeSchedule = window.NIYUN_THEME_SCHEDULE || { lightStartHour: 6, lightEndHour: 18 };
     let automaticThemeTimer = null;
     function isAutomaticLightTime(date?) {
@@ -375,7 +371,7 @@
         }
         return valueResult37;
     }
-    // 自动主题只需等到下一次昼夜分界再更新，不必每秒检查时间。
+    // 在下一个昼夜分界时更新主题
     function scheduleAutomaticThemeUpdate() {
         if (automaticThemeTimer) {
             window.clearTimeout(automaticThemeTimer);
@@ -402,7 +398,7 @@
             return applyDisplaySettings(false);
         }, Math.max(1000, nextBoundary.getTime() - now.getTime() + 100));
     }
-    // 浏览器里保存的设置可能来自旧版本，先补默认值并限制数值范围。
+    // 浏览器里保存的设置可能来自旧版本，先补默认值并限制数值范围
     function normalizeSettings(settings) {
         let valueResult39;
         if (Object.hasOwn(themeSettingOptions, settings.themeMode)) {
@@ -419,7 +415,7 @@
             dustSpeed: clampNumber(settings.dustSpeed, motionSettingRanges.backgroundDustSpeed.min, motionSettingRanges.backgroundDustSpeed.max, defaultSettings.dustSpeed),
         };
     }
-    // 把设置应用到页面；初始化时可以不重复保存，用户修改时再写入本地存储。
+    // 把设置应用到页面；初始化时可以不重复保存，用户修改时再写入本地存储
     function applyDisplaySettings(save?) {
         if (save === undefined) {
             save = true;
@@ -448,7 +444,7 @@
             window.localStorage.setItem(settingsStorageKey, JSON.stringify(userSettings));
         }
     }
-    // 从休眠或后台返回时立即校正，避免错过 06:00 / 18:00 的定时切换。
+    // 从休眠或后台返回时立即校正，避免错过 06:00 / 18:00 的定时切换
     document.addEventListener("visibilitychange", function handleVisibilitychange() {
         if (!document.hidden && userSettings.themeMode === "auto") {
             applyDisplaySettings(false);
@@ -545,7 +541,7 @@
         }
         return valueResult51;
     };
-    // AI 回复会包含少量 Markdown。先转义 HTML，再只开放常用格式，避免插入恶意标签。
+    // AI 回复会包含少量 Markdown。先转义 HTML，再只开放常用格式，避免插入恶意标签
     function renderInlineMarkdown(text) {
         return escapeHtml(text)
             .replace(/`([^`]+)`/g, "<code>$1</code>")
@@ -553,7 +549,7 @@
             .replace(/__([^_]+)__/g, "<strong>$1</strong>")
             .replace(/\*([^*]+)\*/g, "<em>$1</em>");
     }
-    // 将聊天文本中的标题、列表等转换成页面内容；文字转义和链接检查不能省略。
+    // 将聊天文本转换为标题、列表和链接
     function renderMarkdown(markdown) {
         const source = String(markdown || "").replace(/\r\n?/g, "\n");
         const codeBlocks = [];
@@ -624,7 +620,7 @@
             return codeBlocks[Number(index)] || "";
         });
     }
-    // 页面右下角的短提示，2.6 秒后自动隐藏。
+    // 页面右下角的短提示，2.6 秒后自动隐藏
     let toastTimer = 0;
     function showToast(message: string) {
         const toast = (document.querySelector("#toast") as HTMLElement);
@@ -635,8 +631,8 @@
             return toast.classList.remove("show");
         }, 2600);
     }
-    // ==================== 02. 藏品、地图、课程和文创内容渲染 ====================
-    // 有实物图时显示图片；没有图片时根据印文生成简单的数字复原图。
+    // 02. 藏品、地图、课程和文创内容渲染
+    // 有实物图时显示图片；没有图片时根据印文生成简单的数字复原图
     function createRelicVisual(item) {
         const imageUrl = safeResourceUrl(item.imageUrl);
         if (imageUrl) {
@@ -666,7 +662,7 @@
         valueResult69 = result75;
         return ("<div class=\"relic-visual " + (escapeHtml(item.tone)) + "\" aria-label=\"" + (escapeHtml(item.name)) + "数字复原图\"><div class=\"relic-disc\"><div class=\"mini-inscription\">" + (valueResult69.join("")) + "</div></div><span class=\"relic-code\">" + (escapeHtml(item.id)) + "</span></div>");
     }
-    // 根据藏品数据生成卡片；没有结果时显示空状态，不留下旧卡片。
+    // 根据藏品数据生成卡片，空列表显示提示
     function renderRelics(items) {
         let valueResult73;
         if (items.length) {
@@ -705,7 +701,7 @@
         "NMX-003": { query: "仓府" },
         "NMX-004": { query: "齐北船丞" },
     };
-    // 点击地图点位后，更新右侧的地点介绍和资料数量。
+    // 点击地图点位后，更新右侧的地点介绍和资料数量
     function updateSitePanel(site, index?) {
         if (index === undefined) {
             index = 0;
@@ -715,12 +711,12 @@
         (document.querySelector("#siteName") as HTMLElement).textContent = site.name;
         const description = (document.querySelector("#siteDescription") as HTMLElement);
         description.textContent = site.description;
-        // 说明区域独立滚动；切换地点时回到开头，避免继承上一地点的滚动位置。
+        // 说明区域独立滚动；切换地点时回到开头，避免继承上一地点的滚动位置
         description.scrollTop = 0;
         (document.querySelector("#sitePeriod") as HTMLElement).textContent = site.period;
         (document.querySelector("#siteCount") as HTMLElement).textContent = ("" + (site.count) + " 条");
     }
-    // 生成当前筛选下的地图点位，并同步默认选中地点与立体地图。
+    // 生成当前筛选下的地图点位，并同步默认选中地点与立体地图
     function renderSites(sites) {
         visibleSites = sites;
         const root = (document.querySelector("#mapMarkers") as HTMLElement);
@@ -759,7 +755,7 @@
                         valueResult87 = value91.call(value90, /[县市区]$/, "");
                     }
                     const county = valueResult87;
-                    // 两种地图统一使用县级经纬度；site.x/site.y 只作为缺少县级坐标时的旧数据兜底。
+                    // 优先使用县级经纬度，缺少时读取 site.x 和 site.y
                     const coordinate = mapCoordinates.counties[county] || mapCoordinates.cities[city];
                     let valueResult89;
                     {
@@ -811,7 +807,7 @@
             updateSitePanel(sites[0]);
         }
     }
-    // 将 ppt-knowledge.js 中整理的研究发现写入页面。
+    // 将 ppt-knowledge.ts 中的研究发现写入页面
     function renderSourceFindings() {
         const knowledge = getKnowledge();
         if (!knowledge || !knowledge.findings) {
@@ -832,7 +828,7 @@
         valueResult97 = result101;
         (document.querySelector("#sourceFindings") as HTMLElement).innerHTML = valueResult97.join("");
     }
-    // 补充史料直接嵌入45区县图录卡片，数据仍只来自本地前端文件。
+    // 将补充史料嵌入对应的区县卡片
     function supplementaryList(items) {
         if (!Array.isArray(items) || !items.length) {
             return "";
@@ -997,7 +993,7 @@
         root.innerHTML = valueResult133;
         cacheSourceSupplementHeights(root);
     }
-    // 提前记录折叠内容的高度，展开动画时就能知道应该长到多高。
+    // 提前记录折叠内容的高度，展开动画时就能知道应该长到多高
     function cacheSourceSupplementHeights(root) {
         if (!root) {
             return;
@@ -1017,7 +1013,7 @@
             }
         }
     }
-    // 原生 details 会直接跳开，这里先播放高度变化，再确定最终展开状态。
+    // 原生 details 会直接跳开，这里先播放高度变化，再确定最终展开状态
     async function animateSourceSupplementDetails(details, shouldOpen) {
         const summary = (details.querySelector(":scope > summary") as HTMLElement);
         const content = (details.querySelector(":scope > .source-card-supplement-details-content") as HTMLElement);
@@ -1064,7 +1060,7 @@
         else {
             valueResult147 = "1";
         }
-        // Hide the content before opening <details>, so the first painted frame cannot flash it in.
+        // 先隐藏内容，再展开 details，防止首帧闪现
         content.style.opacity = valueResult147;
         if (shouldOpen) {
             details.open = true;
@@ -1076,7 +1072,7 @@
         else {
             valueResult149 = summary.getBoundingClientRect().height;
         }
-        // The full height was measured during rendering; avoid a first-click layout read.
+        // 使用渲染时保存的高度播放展开动画
         const endHeight = valueResult149;
         const heightAnimation = details.animate([{ height: ("" + (startHeight) + "px") }, { height: ("" + (endHeight) + "px") }], {
             duration: heightDuration,
@@ -1109,7 +1105,7 @@
             details.classList.remove("is-animating");
         }
     }
-    // 页面只展示三处精选；完整筛选结果只在弹窗中渲染，数量文案跟随数据变化。
+    // 页面只展示三处精选；完整筛选结果只在弹窗中渲染，数量文案跟随数据变化
     function renderSourcePreview() {
         let valueResult153;
         const value150 = getKnowledge();
@@ -1185,7 +1181,7 @@
             moreLabel.textContent = valueResult167;
         }
     }
-    // 搜索词为空时显示完整图录，否则只保留匹配条目并更新结果数量。
+    // 搜索词为空时显示完整图录，否则只保留匹配条目并更新结果数量
     function renderSourceDialogIndex(keyword?) {
         if (keyword === undefined) {
             keyword = "";
@@ -1204,7 +1200,7 @@
         (document.querySelector("#sourceDialogFeedback") as HTMLElement).textContent = valueResult169;
     }
     let openingLoaderController = null;
-    // 页面启动顺序：并行取数据，分批生成栏目，AI 在后台连接，最后结束开屏。
+    // 页面启动顺序：并行取数据，分批生成栏目，AI 在后台连接，最后结束开屏
     async function init() {
         openingLoaderController = window.NiyunOpeningLoader.create({ findElement: findElement });
         openingLoaderController.start();
@@ -1241,14 +1237,14 @@
             prefersReducedMotion: prefersReducedMotion,
             mediaConfig: window.MEDIA_CONFIG,
         });
-        // 先开始准备课件，同时继续生成其他栏目，不让这些工作互相排队等待。
+        // 准备课件的同时渲染其他栏目
         const initialCourseReady = courseBrowser.renderCourses(courseItems);
         courseBrowser.initCourseScroll();
         await openingLoaderController.yieldToBrowser();
         renderSourceFindings();
         renderSourcePreview();
         window.NiyunScrollStory.create({ findElement: findElement, findElements: findElements, escapeHtml: escapeHtml, prefersReducedMotion: prefersReducedMotion }).init();
-        // AI 在后台连接，不让它阻塞图鉴、地图和课程的展示。
+        // 在后台检查 AI 连接
         AiService.getStatus()
             .then(function (status) {
             return aiChatController.renderStatus(status);
@@ -1256,7 +1252,7 @@
             .catch(function handleInitialAiStatusFailure() {
             aiChatController.renderStatus({ connected: false });
         });
-        // 结束开屏前，再确认最先展示的课件已完成准备流程。
+        // 结束开屏前，再确认最先展示的课件已完成准备流程
         await initialCourseReady;
         openingLoaderController.finish(true);
     }
@@ -1273,7 +1269,7 @@
     const sourceDialogPanel = (valueResult171 as HTMLElement);
     const sourceDialogSearch = (document.querySelector("#sourceDialogSearch") as HTMLInputElement);
     const clearSourceDialogSearch = (document.querySelector("#clearSourceDialogSearch") as HTMLButtonElement);
-    // 搜索、图录和设置弹窗共用的基础进出场动画。
+    // 搜索、图录和设置弹窗共用的基础进出场动画
     function openModalAnimation(panel) {
         return runElementAnimation(panel, [
             {
@@ -1372,7 +1368,7 @@
         },
     });
     mapBrowserController.init();
-    // ==================== 08. 通用点击提示和藏品详情 ====================
+    // 08. 通用点击提示和藏品详情
     function revealRelicCard(relicId) {
         const target = (document.querySelector(("[data-relic-card=\"" + (CSS.escape(String(relicId))) + "\"]")) as HTMLElement);
         if (!target) {
@@ -1410,7 +1406,7 @@
             await sourceArchiveController.openRelic(detail.dataset.relicId);
         }
     });
-    // 搜索和图鉴定位共用同一套滚动、描边与焦点反馈。
+    // 搜索和图鉴定位共用同一套滚动、描边与焦点反馈
     function revealTarget(target) {
         if (!target) {
             return;

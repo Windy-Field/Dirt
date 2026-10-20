@@ -10,7 +10,7 @@ if (!fs.existsSync(builtQuizPath)) {
   throw new Error("未找到 dist/assets/quiz-bundle.js，请先运行 Vite 构建。");
 }
 
-// assets 的复制可能覆盖刚生成的问答包，因此先保留构建结果，复制后恢复。
+// assets 的复制可能覆盖刚生成的问答包，因此先保留构建结果，复制后恢复
 const quizBundle = fs.readFileSync(builtQuizPath);
 
 const copyDirectories = ["assets", "css", "data", "js", ".runtime"];
@@ -22,7 +22,7 @@ for (let directoryIndex = 0; directoryIndex < copyDirectories.length; directoryI
   });
 }
 
-// 校验实际配置引用的媒体，防止构建成功但上线后视频或封面返回 404。
+// 校验实际配置引用的媒体，防止构建成功但上线后视频或封面返回 404
 const mediaContext = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(distRoot, ".runtime/data/media-config.js"), "utf8"), mediaContext);
 const mediaKeys = ["recapVideoUrl", "recapPosterUrl"];

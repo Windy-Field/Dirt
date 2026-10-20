@@ -1,8 +1,8 @@
 (function initializeShowcase() {
     const root = (document.querySelector("#product3dShowcase") as HTMLElement);
     /*
-     * ==================== 3D 展厅交互参数 ====================
-     * 单位：角度使用弧度，相机距离使用 Three.js 场景单位，速度为每秒弧度。
+     *  3D 展厅交互参数
+     * 单位：角度使用弧度，相机距离使用 Three.js 场景单位，速度为每秒弧度
      */
     const showcaseSettings = {
         defaultAutoRotate: false,
@@ -42,7 +42,6 @@
         });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        // 封泥牌具不使用投影阴影，避免模型下方出现深色阴影块。
         renderer.shadowMap.enabled = false;
         renderer.setClearColor(0x000000, 0);
         scene.add(new THREE.HemisphereLight(0xf5ead8, 0x1f302b, 2.35));
@@ -66,7 +65,7 @@
         let showcaseVisible = true;
         let animationFrameId = 0;
         const textureLoader = new THREE.TextureLoader();
-        // 在中心点周围画圆角矩形，后面把它加厚就得到扑克牌的实体。
+        // 在中心点周围画圆角矩形，后面把它加厚就得到扑克牌的实体
         function roundedRectShape(width, height, radius) {
             const x = -width / 2;
             const y = -height / 2;
@@ -82,7 +81,7 @@
             shape.quadraticCurveTo(x, y, x + radius, y);
             return shape;
         }
-        // 图片加载失败时仍显示带牌名的备用牌面，不让模型变成空白。
+        // 生成带牌名的备用牌面，供贴图加载失败时使用
         function makePlaceholderTexture(item, type, face) {
             let valueResult1;
             if (type === "poker") {
@@ -161,7 +160,7 @@
             texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
             return texture;
         }
-        // 麻将侧边没有单独的图片，用画布生成木纹和边框。
+        // 麻将侧边没有单独的图片，用画布生成木纹和边框
         function makeMahjongEdgeTexture(direction?) {
             if (direction === undefined) {
                 direction = "vertical";
@@ -192,7 +191,7 @@
             base.addColorStop(1, "#c7cbc0");
             ctx.fillStyle = base;
             ctx.fillRect(0, 0, surface.width, surface.height);
-            // 细木纹与纸纤维只提供近看质感，不与正面封泥图案争夺注意力。
+            // 绘制侧面的木纹与纸纤维
             ctx.lineWidth = 1;
             for (let index = 0; index < 34; index += 1) {
                 const offset = 18 + index * 15;
@@ -222,7 +221,6 @@
             ctx.strokeStyle = "rgba(101, 123, 132, 0.58)";
             ctx.lineWidth = 3;
             ctx.strokeRect(34, 34, 444, 444);
-            // 中央暗记采用无文字菱形印纹，任意方向观看都成立。
             ctx.save();
             ctx.translate(256, 256);
             ctx.rotate(Math.PI / 4);
@@ -240,7 +238,7 @@
             texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
             return texture;
         }
-        // 双击网页时读内嵌图片，网站模式读安全地址；两种方式失败都返回备用牌面。
+        // 双击网页时读内嵌图片，网站模式读安全地址；两种方式失败都返回备用牌面
         async function loadTexture(path, fallback) {
             if (window.location.protocol === "file:") {
                 let valueResult21;
@@ -297,7 +295,7 @@
                 return fallback;
             }
         }
-        // 换牌时释放旧模型占用的显存，仅从页面移除对象并不会自动释放这些资源。
+        // 换牌时释放旧模型的几何体、材质和贴图
         function disposeModel() {
             while (modelRoot.children.length) {
                 const child = modelRoot.children.pop();
@@ -349,12 +347,12 @@
                 });
             }
         }
-        // 把图片贴在牌的正面或背面，稍微离开实体表面以免两层画面闪烁。
+        // 把图片贴在牌的正面或背面，稍微离开实体表面以免两层画面闪烁
         function makeFace(width, height, depth, texture, back?) {
             if (back === undefined) {
                 back = false;
             }
-            // 标准平面自带 0～1 UV，Photoshop 导出的整张贴图可以无损铺满。
+            // 标准平面自带 0～1 UV，Photoshop 导出的整张贴图可以无损铺满
             const geometry = new THREE.PlaneGeometry(width * 0.94, height * 0.94);
             const material = new THREE.MeshStandardMaterial({
                 map: texture,
@@ -378,7 +376,7 @@
             }
             return mesh;
         }
-        // 将薄的圆角牌身与正反两张牌面组合成一张扑克牌。
+        // 将薄的圆角牌身与正反两张牌面组合成一张扑克牌
         function buildPoker(item, textures) {
             const size = config.poker.model;
             const group = new THREE.Group();
@@ -395,7 +393,7 @@
             group.add(body, makeFace(size.width, size.height, size.depth, textures.front), makeFace(size.width, size.height, size.depth, textures.back, true));
             return group;
         }
-        // 麻将由较厚的牌身、侧边纹理和正反牌面组成。
+        // 麻将由较厚的牌身、侧边纹理和正反牌面组成
         function buildMahjong(item, textures) {
             const size = config.mahjong.model;
             const group = new THREE.Group();
@@ -436,7 +434,7 @@
             group.add(front, back);
             return group;
         }
-        // 加载当前选中的牌；编号用来识别过期请求，防止连续切换后显示上一张。
+        // 加载当前选中的牌；编号用来识别过期请求，防止连续切换后显示上一张
         async function loadCurrentItem() {
             const revision = ++loadRevision;
             const collection = config[mode];
@@ -490,7 +488,7 @@
             status.textContent = "拖动旋转 · 滚轮缩放 · 双击翻面";
             updateButtons();
         }
-        // 根据实际状态更新按钮文字和选中标记，让按钮与模型保持一致。
+        // 根据实际状态更新按钮文字和选中标记，让按钮与模型保持一致
         function updateButtons() {
             autoRotateButton.setAttribute("aria-pressed", String(autoRotate));
             let valueResult45;
@@ -519,7 +517,7 @@
                 }
             }
         }
-        // 换牌具种类时回到该组第一件，同时恢复合适的相机距离。
+        // 换牌具种类时回到该组第一件，同时恢复合适的相机距离
         function setMode(nextMode) {
             if (!config[nextMode] || nextMode === mode) {
                 return;
@@ -530,7 +528,7 @@
             updateButtons();
             loadCurrentItem();
         }
-        // 恢复初始角度和距离，不改变用户正在看的牌具种类。
+        // 恢复当前牌具的初始角度和距离
         function resetView() {
             targetRotation = { x: showcaseSettings.initialRotationX, y: showcaseSettings.initialRotationY };
             let valueResult53;
@@ -547,7 +545,7 @@
             }
             flipped = false;
         }
-        // 容器尺寸变化后同步画布与相机比例，避免模型被拉宽或压扁。
+        // 容器尺寸变化后同步画布与相机比例，避免模型被拉宽或压扁
         function resize() {
             const rect = viewport.getBoundingClientRect();
             if (!rect.width || !rect.height) {
@@ -557,7 +555,7 @@
             camera.aspect = rect.width / rect.height;
             camera.updateProjectionMatrix();
         }
-        // direction 为 1 是下一件，-1 是上一件；到头后从另一端继续。
+        // direction 为 1 是下一件，-1 是上一件；到头后从另一端继续
         function changeItem(direction) {
             const count = config[mode].items.length;
             itemIndex += direction;
@@ -569,7 +567,7 @@
             }
             loadCurrentItem();
         }
-        // 每次再转半圈；按钮点击和双击模型共用这一入口。
+        // 每次再转半圈；按钮点击和双击模型共用这一入口
         function flipItem() {
             flipped = !flipped;
             targetRotation.y += Math.PI;
@@ -645,7 +643,7 @@
         }, { passive: false });
         new ResizeObserver(resize).observe(viewport);
         document.addEventListener("fullscreenchange", resize);
-        // 3D 展厅离开视口或页面切到后台时暂停渲染，回来后再从当前状态继续。
+        // 3D 展厅离开视口或页面切到后台时暂停渲染，回来后再从当前状态继续
         const showcaseVisibilityObserver = new IntersectionObserver(function updateShowcaseVisibility(options47) {
             const source48 = options47;
             const entry = source48[0];
@@ -667,7 +665,7 @@
             }
         });
         const clock = new THREE.Clock();
-        // 模型逐帧靠近拖动的目标角度；离开视口后暂停，减少不必要的绘制。
+        // 模型逐帧靠近拖动的目标角度；离开视口后暂停，减少不必要的绘制
         function animate() {
             if (!showcaseVisible || document.hidden) {
                 animationFrameId = 0;

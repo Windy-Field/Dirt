@@ -39,7 +39,7 @@ function close() {
   }
 }
 
-// 优先用剪贴板接口，不支持时尝试文本框复制，并给出复制结果。
+// 优先用剪贴板接口，不支持时尝试文本框复制，并给出复制结果
 async function copyUrl() {
   copied.value = false;
   copyButtonText.value = "复制中…";

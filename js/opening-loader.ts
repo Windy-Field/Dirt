@@ -6,9 +6,9 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
         }) {
             const source2 = options1;
             const findElement = source2.findElement;
-            // 开屏动画只负责展示层；正文数据加载完成后由 app.js 调用 finish() 让它退场。
+            // 页面准备完成后，app.ts 调用 finish() 结束开屏
             const config = {
-                // “你知道吗”轮换节奏（毫秒）：改这里即可，数字越大换得越慢。
+                // 知识短句的轮换间隔，单位为毫秒
                 didYouKnowIntervalMs: 3800,
                 didYouKnowFadeMs: 220,
                 stages: [
@@ -21,7 +21,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 preBreakHoldMs: 1400,
                 completedHoldMs: 900,
                 removeDelayMs: 1100,
-                // 单张图片最多等待 30 秒；超时会标记失败并使用页面已有占位内容。
+                // 单张图片最多等待 30 秒；超时会标记失败并使用页面已有占位内容
                 resourceReadyTimeoutMs: 30000,
                 initialProgress: 8,
                 progressEase: 0.12,
@@ -74,7 +74,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
             let crackPaths = [];
             const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             const particleCanvas = (document.querySelector("#sealParticlesCanvas") as HTMLCanvasElement);
-            // 这里只保存四块碎片元素；飞行轨迹由 releaseFragments 计算，不再使用旧 CSS 动画类。
+            // 保存四块碎片，飞行轨迹由 releaseFragments 计算
             const fragments = [
                 (document.querySelector("#fragNW") as HTMLElement),
                 (document.querySelector("#fragNE") as HTMLElement),
@@ -101,7 +101,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
             let pageReadyPromise = null;
             let finishPromise = null;
             let fragmentsStarted = false;
-            // 先画裂纹，再复制完整印面作为碎块；各副本的 SVG 编号必须不同，避免引用串台。
+            // 先画裂纹，再复制完整印面作为碎块；各副本的 SVG 编号必须不同，避免引用串台
             function prepareFracture() {
                 let valueResult3;
                 const value6 = seal;
@@ -254,14 +254,14 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                                     }
                                 }
                                 fragment.replaceChildren(copy);
-                                // Keep shards outside the fading seal so their fall can finish independently.
+                                // 将碎片移到封泥外层，独立播放下落动画
                                 seal.parentElement.append(fragment);
                             }
                         }
                     }
                 }
             }
-            // 建立泥屑画布。按屏幕像素密度放大画布，让高分屏上的碎屑也清晰。
+            // 建立泥屑画布。按屏幕像素密度放大画布，让高分屏上的碎屑也清晰
             function initParticles() {
                 if (!particleCanvas) {
                     return null;
@@ -285,7 +285,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                         particleFrame = requestAnimationFrame(render);
                     }
                 }
-                // 给每粒泥屑一个出发位置、速度和转速，之后按经过的时间计算运动。
+                // 给每粒泥屑一个出发位置、速度和转速，之后按经过的时间计算运动
                 function createDebris(count?, burst?) {
                     if (burst === undefined) {
                         burst = false;
@@ -360,7 +360,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     }
                     wake();
                 }
-                // 只在有泥屑时绘制；按时间而非帧数计算，避免不同刷新率下快慢不一。
+                // 只在有泥屑时绘制；按时间而非帧数计算，避免不同刷新率下快慢不一
                 function render(timestamp?) {
                     if (timestamp === undefined) {
                         timestamp = 0;
@@ -402,7 +402,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 }
                 return { createDebris: createDebris };
             }
-            // 大碎块沿抛物线飞散，并在 0.75 秒内渐隐；减少动态效果时不播放飞散。
+            // 大碎块沿抛物线飞散，并在 0.75 秒内渐隐；减少动态效果时不播放飞散
             function releaseFragments() {
                 if (reducedMotion) {
                     return;
@@ -434,7 +434,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                             const vx = source59[0];
                             const vy = source59[1];
                             const spin = source59[2];
-                            // Sample x = vx*t and y = vy*t + g*t*t/2 densely for compositor playback.
+                            // 按抛物线公式生成关键帧，交给浏览器播放
                             const keyframes = Array.from({ length: 61 }, function (_, frame) {
                                 const offset = frame / 60;
                                 const time = (offset * config.debrisLifetimeMs) / 1000;
@@ -455,7 +455,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     }
                 }
             }
-            // 开屏等待期间轮换知识短句，计时器会在退场时清理。
+            // 开屏等待期间轮换知识短句，计时器会在退场时清理
             function startDidYouKnow() {
                 if (!didYouKnowText || !didYouKnowFacts.length) {
                     return;
@@ -467,7 +467,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     setDidYouKnowText(didYouKnowFacts[didYouKnowIndex]);
                 }, config.didYouKnowIntervalMs);
             }
-            // 随机选下一句，但不连续显示同一句。
+            // 随机选下一句，但不连续显示同一句
             function nextDidYouKnowIndex() {
                 if (didYouKnowFacts.length < 2) {
                     return 0;
@@ -520,7 +520,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     valueResult57 = value63.call(value62, "is-switching");
                 }
             }
-            // 开屏结束前，等待页面当前已经生成的图片完成加载或明确失败。
+            // 开屏结束前，等待页面当前已经生成的图片完成加载或明确失败
             function waitForPageReady() {
                 if (pageReadyPromise) {
                     return pageReadyPromise;
@@ -583,7 +583,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 valueResult61 = result72;
                 const imageReady = Promise.all(valueResult61);
                 pageReadyPromise = Promise.all([imageReady, document.fonts.ready]).then(function allowFinalPaint() {
-                    // 留出两个绘制帧，让刚准备好的图片有机会显示后再继续退场。
+                    // 留出两个绘制帧，让刚准备好的图片有机会显示后再继续退场
                     return new Promise(function waitForPaint(resolve) {
                         window.requestAnimationFrame(function nextFrame() {
                             window.requestAnimationFrame(resolve);
@@ -592,7 +592,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 });
                 return pageReadyPromise;
             }
-            // 将进度分为受力、开裂、碎裂和展卷几个阶段，统一控制各部分的显示。
+            // 将进度分为受力、开裂、碎裂和展卷几个阶段，统一控制各部分的显示
             function updateVisuals(value) {
                 if (!loader) {
                     return;
@@ -635,7 +635,6 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     particleEngine.createDebris(valueResult63, true);
                     particlesPlayed = true;
                 }
-                // 进度不是单纯的数字：不同区间分别对应封泥裂纹、绳线断开和卷轴展开。
                 if (progress < 25) {
                     if (paperContainer) {
                         paperContainer.style.width = "0px";
@@ -775,7 +774,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     }
                 }
             }
-            // 每帧向目标进度靠近一点，避免进度条突然跳到下一阶段。
+            // 每帧向目标进度靠近一点，避免进度条突然跳到下一阶段
             function tickProgress() {
                 if (!loader) {
                     return;
@@ -796,7 +795,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     progressFrame = requestAnimationFrame(tickProgress);
                 }
             }
-            // 启动开屏；用户关闭动画时直接移除，加载异常时也有兜底退场。
+            // 启动开屏，关闭动画或加载超时时移除遮罩
             function start() {
                 if (!loader) {
                     return;
@@ -814,7 +813,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     const value97 = value96.render;
                     valueResult83 = value97.call(value96, (loader.querySelector(".seal-inscription") as SVGGElement));
                 }
-                // 数据接口异常时仍会走页面资源等待；不再提前跳过图片直接结束开屏。
+                // 数据请求结束后，继续等待页面图片就绪
                 fallbackTimer = null;
                 particleEngine = initParticles();
                 prepareFracture();
@@ -833,7 +832,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     }
                 }, config.stageIntervalMs);
             }
-            // 资料就绪后播完碎裂和展卷，再清理动画帧并移除遮罩。
+            // 资料就绪后播完碎裂和展卷，再清理动画帧并移除遮罩
             async function finishWhenReady(success) {
                 let valueResult85;
                 const value99 = loader;
@@ -853,9 +852,9 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 if (!cachedPaperWidth && paper) {
                     cachedPaperWidth = paper.getBoundingClientRect().width || 704;
                 }
-                // 数据很快就绪时，也要先走完裂纹阶段；不能提前清掉阶段计时器。
+                // 等裂纹阶段播放完成后再退场
                 await new Promise<void>(function waitForCracks(resolve) {
-                    // 进度采用逐渐逼近的方式更新，53.5 会显示为 54%，不要求小数精确等于 54。
+                    // 进度取整后判断阶段是否完成
                     function checkCrackProgress() {
                         if (!loader.isConnected || currentProgress >= 53.5) {
                             resolve();
@@ -940,7 +939,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                     removeTimer = null;
                 }, config.removeDelayMs);
             }
-            // 正常加载与超时兜底都可能要求结束，这里确保退场流程只启动一次。
+            // 正常完成和加载超时共用一次退场流程
             function finish(success?) {
                 if (success === undefined) {
                     success = true;
@@ -962,7 +961,7 @@ const NiyunOpeningLoader = (function registerOpeningLoader() {
                 finishPromise = finishWhenReady(success);
                 return finishPromise;
             }
-            // 暂时让出执行时间，让浏览器先画一帧，避免连续生成内容时卡住动画。
+            // 暂时让出执行时间，让浏览器先画一帧，避免连续生成内容时卡住动画
             function yieldToBrowser() {
                 return new Promise<void>(function scheduleBrowserYield(resolve) {
                     let conditionValue97 = "scheduler" in window;

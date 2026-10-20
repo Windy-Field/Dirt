@@ -4,8 +4,8 @@ const path = require("path");
 require("dotenv").config();
 const database = require("./server/db");
 
-// ==================== 01. 服务配置 ====================
-// API Key 只从服务器环境变量读取，不能写进前端文件或提交到代码仓库。
+// 01. 服务配置
+// 从服务端环境变量读取密钥
 const PORT = Number(process.env.PORT || process.env.FC_SERVER_PORT || process.env.AI_SERVER_PORT || 3000);
 const WEB_ROOT = __dirname;
 const BUILD_ROOT = path.join(__dirname, "dist");
@@ -30,12 +30,12 @@ const dbPool = database.createPool();
 let aiStatusCache = { checkedAt: 0, connected: false };
 let aiStatusProbe = null;
 const aiRateLimit = new Map();
-// 成功状态可稳定复用；失败状态只短暂缓存，避免一次网络抖动造成持续误报。
+// 成功状态可稳定复用；失败状态只短暂缓存，避免一次网络抖动造成持续误报
 const AI_STATUS_SUCCESS_CACHE_MS = 5 * 60 * 1000;
 const AI_STATUS_FAILURE_CACHE_MS = 15 * 1000;
 
-// ==================== 02. 通用响应和静态网页服务 ====================
-// 所有 API 都用这个函数返回 JSON，并附带跨域和安全响应头。
+// 02. 通用响应和静态网页服务
+// 所有 API 都用这个函数返回 JSON，并附带跨域和安全响应头
 function sendJson(response, status, data) {
   let requestOrigin = "";
   if (response.req && response.req.headers) {
@@ -52,8 +52,7 @@ function sendJson(response, status, data) {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    // 浏览器默认只准本站运行脚本；这里额外放行 Umami Cloud，才能下载统计脚本并回传访问数据。
-    // 若以后改成自建 Umami，需要把下面两处 cloud.umami.is 一起替换为自建站域名。
+    // CSP 放行 Umami 脚本和统计请求，自建时同步替换域名
     "Content-Security-Policy":
       "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-eval' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: https://cloud.umami.is;",
     "Access-Control-Allow-Origin": corsOrigin,
@@ -84,15 +83,15 @@ const MIME_TYPES = {
   ".webm": "video/webm",
 };
 
-// 把 index.html、CSS、JavaScript 和图片发送给浏览器。
-// path.resolve + startsWith 检查用于阻止访问项目文件夹以外的文件。
+// 把 index.html、CSS、JavaScript 和图片发送给浏览器
+// path.resolve + startsWith 检查用于阻止访问项目文件夹以外的文件
 function serveStatic(request, response) {
   const requestPath = decodeURIComponent(new URL(request.url, "http://127.0.0.1").pathname);
   let relativePath = requestPath.replace(/^\/+/, "");
   if (requestPath === "/") {
     relativePath = "index.html";
   }
-  // 首页和 Vite 构建产物从 dist 读取；旧页面脚本、数据和媒体继续从项目根目录读取。
+  // 优先读取 dist，缺少时查找项目根目录
   const buildPath = path.resolve(BUILD_ROOT, relativePath);
   const sourcePath = path.resolve(WEB_ROOT, relativePath);
   let filePath = sourcePath;
@@ -100,7 +99,7 @@ function serveStatic(request, response) {
     filePath = buildPath;
   }
   if (!filePath.startsWith(`${WEB_ROOT}${path.sep}`)) return sendJson(response, 403, { error: "禁止访问" });
-  // 源码、配置和版本目录不能通过公网静态下载，即使误被部署包带入也要拒绝访问。
+  // 拒绝下载源码、配置和版本目录
   const blockedFile =
     /(^|[\\/])(?:\.env(?:\..*)?|\.git|server(?:[\\/]db)?\.js|package(?:-lock)?\.json|.*\.sql)$/i.test(
       relativePath,
@@ -109,8 +108,8 @@ function serveStatic(request, response) {
 
   fs.stat(filePath, function sendStaticFile(statError, stat) {
     if (statError || !stat.isFile()) return sendJson(response, 404, { error: "文件不存在" });
-    // 视频拖动进度条时，浏览器不会重新下载整段视频，而是用 Range 请求读取目标时间附近的数据。
-    // 这里兼容“从某字节开始”“指定起止字节”和“读取末尾若干字节”三种单段范围格式。
+    // 用 Range 请求读取视频片段，支持拖动进度条
+    // 这里兼容“从某字节开始”“指定起止字节”和“读取末尾若干字节”三种单段范围格式
     const rangeHeader = request.headers.range;
     let range = null;
     if (rangeHeader) {
@@ -132,7 +131,7 @@ function serveStatic(request, response) {
           }
         }
       }
-      // 范围格式不正确或起点超出文件末尾时，按 HTTP 规范告诉浏览器文件的真实总长度。
+      // 范围格式不正确或起点超出文件末尾时，按 HTTP 规范告诉浏览器文件的真实总长度
       if (!range || range.start >= stat.size) {
         response.writeHead(416, {
           "Content-Range": `bytes */${stat.size}`,
@@ -151,13 +150,13 @@ function serveStatic(request, response) {
       "X-Frame-Options": "DENY",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      // 静态页面也受 CSP 保护，因此这里要和上面的 API 响应保持同一份 Umami 域名许可。
+      // 静态页面也受 CSP 保护，因此这里要和上面的 API 响应保持同一份 Umami 域名许可
       "Content-Security-Policy":
         "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-eval' https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https: https://cloud.umami.is;",
       "Cache-Control": "no-cache",
     };
     if (range) {
-      // 分段响应必须同时给出实际范围和长度，浏览器才能把这段数据放到正确的播放位置。
+      // 分段响应必须同时给出实际范围和长度，浏览器才能把这段数据放到正确的播放位置
       staticHeaders["Content-Range"] = `bytes ${range.start}-${range.end}/${stat.size}`;
       staticHeaders["Content-Length"] = String(range.end - range.start + 1);
     } else {
@@ -165,7 +164,7 @@ function serveStatic(request, response) {
     }
     if (process.env.ENABLE_HSTS === "true")
       staticHeaders["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
-    // 有 Range 时只读取对应片段并返回 206；普通请求仍返回完整文件和 200。
+    // 有 Range 时只读取对应片段并返回 206；普通请求仍返回完整文件和 200
     let responseStatus = 200;
     if (range) {
       responseStatus = 206;
@@ -175,7 +174,7 @@ function serveStatic(request, response) {
   });
 }
 
-// 读取 POST 请求中的 JSON，同时限制总大小，避免超大请求拖垮服务。
+// 读取 POST 请求中的 JSON，同时限制总大小，避免超大请求拖垮服务
 function readJson(request) {
   return new Promise(function collectJsonBody(resolve, reject) {
     let size = 0;
@@ -209,7 +208,7 @@ function readJson(request) {
   });
 }
 
-// 图片数量、类型、单张大小和 Data URL 格式必须同时符合要求。
+// 图片数量、类型、单张大小和 Data URL 格式必须同时符合要求
 function validateImages(images) {
   if (!Array.isArray(images)) {
     const error = new Error("images 必须是数组");
@@ -255,9 +254,9 @@ function validateImages(images) {
   }
 }
 
-// 只限制高成本 AI 请求，避免公开接口被脚本反复调用而消耗云端额度。
+// 只限制高成本 AI 请求，避免公开接口被脚本反复调用而消耗云端额度
 function isAiRateLimited(request) {
-  // 这里使用 FC/网关传入的真实连接地址；不要直接信任访客自带的转发头。
+  // 按连接地址限流
   const ip = String(request.socket.remoteAddress || "unknown");
   const now = Date.now();
   if (aiRateLimit.size > 10000) {
@@ -294,9 +293,9 @@ function isAiRateLimited(request) {
   return false;
 }
 
-// 记录详细错误，但只向访客返回安全的错误提示。
+// 记录服务端错误，向访客返回简短提示
 function publicError(error, fallback = "请求处理失败") {
-  // 详细错误只写入服务日志，避免把数据库地址或上游响应泄露给访客。
+  // 详细错误只写入服务日志，避免把数据库地址或上游响应泄露给访客
   console.error(error);
   if (error && error.publicMessage) {
     return error.publicMessage;
@@ -304,7 +303,7 @@ function publicError(error, fallback = "请求处理失败") {
   return fallback;
 }
 
-// 把 AI 错误整理成前端可以显示的有限字段。
+// 把 AI 错误整理成前端可以显示的有限字段
 function publicAiError(error, fallback = "AI 请求失败") {
   console.error(error);
   let message = fallback;
@@ -325,14 +324,14 @@ function publicAiError(error, fallback = "AI 请求失败") {
   };
 }
 
-// 数据库未配置时，统一返回服务不可用提示。
+// 数据库未配置时，统一返回服务不可用提示
 function databaseUnavailable(response) {
   return sendJson(response, 503, {
     error: "数据库尚未配置，请设置 DB_HOST、DB_NAME、DB_USER 和 DB_PASSWORD",
   });
 }
 
-// 一次查询取得首页的三项数量，避免分别请求数据库。
+// 一次查询取得首页的三项数量，避免分别请求数据库
 async function getDatabaseStats() {
   const queryResult = await database.query(
     dbPool,
@@ -347,7 +346,7 @@ async function getDatabaseStats() {
   return rows[0];
 }
 
-// 列表字段可能存成 JSON 字符串，先转回数组，前端就能直接遍历。
+// 列表字段可能存成 JSON 字符串，先转回数组，前端就能直接遍历
 function mapSite(row) {
   const site = Object.assign({}, row);
   let tags = [];
@@ -367,7 +366,7 @@ function mapSite(row) {
   return site;
 }
 
-// 按行政体系查询已发布地点；“其他”表示排除三个主要体系。
+// 按行政体系查询已发布地点；“其他”表示排除三个主要体系
 async function getSites(period = "全部") {
   const params = [];
   let sql = "SELECT * FROM sites WHERE is_published = 1";
@@ -407,7 +406,7 @@ async function getSites(period = "全部") {
   return mappedSites;
 }
 
-// 在多个字段中搜索关键词；参数单独绑定，不直接拼进 SQL。
+// 在多个字段中搜索关键词，使用参数绑定传入搜索值
 async function getRelics(keyword = "") {
   const like = `%${keyword}%`;
   const queryResult = await database.query(
@@ -425,7 +424,7 @@ async function getRelics(keyword = "") {
   return { items: rows, total: rows.length };
 }
 
-// 查询已发布课程，并返回前端需要的公开字段。
+// 查询已发布课程，并返回前端需要的公开字段
 async function getCourses() {
   const queryResult = await database.query(
     dbPool,
@@ -435,7 +434,7 @@ async function getCourses() {
   return rows;
 }
 
-// 查询已发布文创作品，并按后台排序字段返回。
+// 查询已发布文创作品，并按后台排序字段返回
 async function getCreativeWorks() {
   const queryResult = await database.query(
     dbPool,
@@ -445,7 +444,7 @@ async function getCreativeWorks() {
   return rows;
 }
 
-// 开始一轮问答：最多随机取十条，同一轮不会重复；开发初期允许少于十题。
+// 随机抽取最多十道已发布题目
 async function startQuizRound() {
   const queryResult = await database.query(
     dbPool,
@@ -463,7 +462,7 @@ async function startQuizRound() {
   return { questions: rows, total: rows.length, scorePerQuestion: QUIZ_SCORE_PER_QUESTION };
 }
 
-// 每次只判断当前一道题。正确答案和解析仅在作答后返回。
+// 判断当前题目的答案，返回对错、解析和得分
 async function answerQuizQuestion(questionId, selectedAnswer) {
   const queryResult = await database.query(
     dbPool,
@@ -487,7 +486,7 @@ async function answerQuizQuestion(questionId, selectedAnswer) {
   };
 }
 
-// 两类模型请求共用鉴权、JSON 解析和错误处理，各模型函数只负责请求体与结果格式。
+// 两类模型请求共用鉴权、JSON 解析和错误处理，各模型函数只负责请求体与结果格式
 async function requestDashScope(url, body, errorLabel) {
   let upstream;
   try {
@@ -547,7 +546,7 @@ async function requestDashScope(url, body, errorLabel) {
   return data;
 }
 
-// 用真实应用请求验证网络、Key 和应用 ID；结果短暂缓存，避免每次刷新重复计费。
+// 调用百炼应用检查连通状态，并缓存结果
 async function isAiUpstreamReachable() {
   if (!API_KEY || !APP_ID) return false;
   let cacheDuration = AI_STATUS_FAILURE_CACHE_MS;
@@ -555,7 +554,7 @@ async function isAiUpstreamReachable() {
     cacheDuration = AI_STATUS_SUCCESS_CACHE_MS;
   }
   if (Date.now() - aiStatusCache.checkedAt < cacheDuration) return aiStatusCache.connected;
-  // FC 冷启动后可能同时收到多个页面探测，复用进行中的请求以免重复调用上游。
+  // FC 冷启动后可能同时收到多个页面探测，复用进行中的请求以免重复调用上游
   if (aiStatusProbe) return aiStatusProbe;
   aiStatusProbe = (async function probeBailianApplication() {
     try {
@@ -575,8 +574,8 @@ async function isAiUpstreamReachable() {
   return aiStatusProbe;
 }
 
-// ==================== 03. 纯文字问答：调用百炼应用 ====================
-// sessionId 用来延续上下文；角色提示确保助手始终以“印小灵”自称。
+// 03. 纯文字问答：调用百炼应用
+// sessionId 用来延续上下文；角色提示确保助手始终以“印小灵”自称
 function normalizeAiName(text) {
   return String(text || "").replaceAll("于见泥", "印小灵");
 }
@@ -611,8 +610,8 @@ async function askBailianApplication(requestData) {
   };
 }
 
-// ==================== 04. 图片问答：调用千问视觉模型 ====================
-// 只要请求中包含图片，就走该函数；模型先描述可见事实，再谨慎给出释读候选。
+// 04. 图片问答：调用千问视觉模型
+// 只要请求中包含图片，就走该函数；模型先描述可见事实，再谨慎给出释读候选
 async function askQwenVision(requestData) {
   const message = requestData.message;
   const images = requestData.images;
@@ -663,12 +662,12 @@ async function askQwenVision(requestData) {
   };
 }
 
-// ==================== 05. 路由入口 ====================
-// 浏览器请求先在这里按“请求方法 + 路径”分流，未命中 API 的 GET 请求再交给静态文件服务。
+// 05. 路由入口
+// 浏览器请求先在这里按“请求方法 + 路径”分流，未命中 API 的 GET 请求再交给静态文件服务
 const server = http.createServer(async function handleRequest(request, response) {
   if (request.method === "OPTIONS") return sendJson(response, 204, {});
 
-  // 前端启动时调用：验证真实上游连通性（可能消耗额度），只公开脱敏配置。
+  // 检查上游连通性，返回状态和脱敏配置
   if (request.method === "GET" && request.url === "/api/ai/status") {
     const connected = await isAiUpstreamReachable();
     let appId = "";
@@ -757,7 +756,7 @@ const server = http.createServer(async function handleRequest(request, response)
     }
   }
 
-  // AI 聊天主接口：有图片走视觉模型，没有图片走百炼应用。
+  // AI 聊天主接口：有图片走视觉模型，没有图片走百炼应用
   if (request.method === "POST" && request.url === "/api/ai/chat") {
     if (!API_KEY)
       return sendJson(response, 503, {
@@ -815,8 +814,8 @@ const server = http.createServer(async function handleRequest(request, response)
   return sendJson(response, 404, { error: "接口不存在" });
 });
 
-// ==================== 06. 启动服务 ====================
-// 监听 0.0.0.0 才能兼容阿里云 FC；本地仍通过 http://127.0.0.1:端口 访问。
+// 06. 启动服务
+// 监听 0.0.0.0 才能兼容阿里云 FC；本地仍通过 http://127.0.0.1:端口 访问
 server.listen(PORT, "0.0.0.0", function reportServerStarted() {
   console.log(`Website and Qwen proxy listening on 0.0.0.0:${PORT}`);
   console.log(`Bailian application: ${APP_ID || "missing"}`);
@@ -827,6 +826,6 @@ server.listen(PORT, "0.0.0.0", function reportServerStarted() {
     console.log("DASHSCOPE_API_KEY is missing");
   }
 });
-// 防止异常客户端长期占用连接；AI 上游另有更短的超时控制。
+// 防止异常客户端长期占用连接；AI 上游另有更短的超时控制
 server.requestTimeout = REQUEST_TIMEOUT;
 server.headersTimeout = 15 * 1000;

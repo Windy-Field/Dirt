@@ -6,7 +6,7 @@ function isDatabaseConfigured() {
   );
 }
 
-// 连接池会复用连接，不必每次查询都重新连接；未配置时不连接数据库。
+// 配置齐全时创建连接池，供多次查询复用
 function createPool() {
   if (!isDatabaseConfigured()) return null;
   return mysql.createPool({
@@ -22,7 +22,7 @@ function createPool() {
   });
 }
 
-// SQL 与参数分开传入，让数据库处理参数，避免直接拼接用户输入。
+// SQL 与参数分开传入，让数据库处理参数，避免直接拼接用户输入
 async function query(pool, sql, params = []) {
   if (!pool) throw new Error("数据库尚未配置");
   return pool.execute(sql, params);

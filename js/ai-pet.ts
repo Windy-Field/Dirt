@@ -79,7 +79,7 @@
         }
     }
     preloadPetStates();
-    // 两张图片交替显示，先准备下一张再切换，减少角色状态变化时的闪白。
+    // 两张图片交替显示，先准备下一张再切换，减少角色状态变化时的闪白
     function switchTexture(nextSrc: string) {
         if (!nextSrc) {
             return;
@@ -118,7 +118,6 @@
             currentLayerIndex = nextLayerIndex;
             return;
         }
-        // 触发平滑交叉淡入淡出（Cross-fade）
         requestAnimationFrame(function crossfadePetTexture() {
             nextLayer.classList.remove("is-fading-out");
             nextLayer.classList.add("is-active");
@@ -127,7 +126,7 @@
             currentLayerIndex = nextLayerIndex;
         });
     }
-    // 统一更新角色图片与状态文字，思考、回答等流程都从这里切换表情。
+    // 统一更新角色图片与状态文字，思考、回答等流程都从这里切换表情
     function setState(state: string, label?) {
         if (label === undefined) {
             label = "";
@@ -344,7 +343,7 @@
         messages.scrollTop = messages.scrollHeight;
         return message;
     }
-    // 发送快捷对话，并在请求期间显示思考状态；结束后恢复可交互状态。
+    // 发送快捷对话，并在请求期间显示思考状态；结束后恢复可交互状态
     async function send(text: string) {
         const message = text.trim();
         if (!message) {
@@ -530,7 +529,7 @@
         root.style.right = "";
         root.style.bottom = "";
     }
-    // 窗口变小时修正保存的位置，避免角色留在屏幕外无法拖回来。
+    // 窗口变小时修正保存的位置，避免角色留在屏幕外无法拖回来
     function adaptCustomPosition() {
         if (!hasCustomPosition) {
             resetToDefaultPosition();
@@ -542,7 +541,6 @@
         root.style.left = ("" + (Math.round(bounds.minLeft + customPositionRatio.x * (bounds.maxLeft - bounds.minLeft))) + "px");
         root.style.top = ("" + (Math.round(bounds.minTop + customPositionRatio.y * (bounds.maxTop - bounds.minTop))) + "px");
     }
-    // 根容器覆盖完整图片盒子，允许图片盒子的四边贴到视口边缘。
     function getDragBounds() {
         const imageWidth = root.offsetWidth;
         const imageHeight = root.offsetHeight;
@@ -630,7 +628,7 @@
         hasCustomPosition = false;
     }
     image.alt = config.imageAlt || "印小灵封泥宠物";
-    // 透明图片的外框不等于角色本身，测量实际内容后再计算贴边与拖动范围。
+    // 测量图片中角色的实际边界，用于贴边和拖动
     function measureImageContentBounds() {
         if (!image.naturalWidth || !image.naturalHeight) {
             return;

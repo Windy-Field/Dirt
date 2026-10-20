@@ -7,22 +7,21 @@
         const rotationInput = (mapRoot.querySelector("#mapRotation") as HTMLInputElement);
         const rotationOutput = (mapRoot.querySelector("#mapRotationValue") as HTMLOutputElement);
         const config = window.SHANDONG_TERRAIN;
-        // ==================== 地图可配置项 ====================
-        // 日常调整视角、缩放和网格精度时只修改这里，不必进入渲染逻辑。
+        // 地图可配置项
         const MAP_VIEW = {
             terrainWidth: 18,
-            // 高度图为 768 x 392；使用半分辨率网格，细节更清楚且浏览器负担可控。
+            // 高度图为 768 x 392，显示网格使用一半分辨率
             gridColumns: 768 / 2,
             gridRows: 392 / 2,
             defaultDistance: 18.5,
-            // 最大放大比例：5 表示地图最多放大到默认大小的 5 倍。
+            // 最大放大比例：5 表示地图最多放大到默认大小的 5 倍
             maxZoomFactor: 5,
             maxDistance: 22,
             minDistance: 0,
             wheelSpeed: 0.012,
             pinchSpeed: 0.025,
             panSpeed: 1,
-            // 只允许向上抬升视角；弧度制，不会左右转向。
+            // 视角抬升范围，单位为弧度
             maxElevation: 1.2,
             maxPanX: 7,
             maxPanY: 4,
@@ -34,7 +33,7 @@
         MAP_VIEW.minDistance = MAP_VIEW.defaultDistance / MAP_VIEW.maxZoomFactor;
         try {
             const scene = new THREE.Scene();
-            // 正射相机没有透视缩短，更接近标准 2D 地图的观察方式。
+            // 使用正射相机，保持地图比例一致
             const camera = new THREE.OrthographicCamera(-9, 9, 6, -6, 0.1, 100);
             const renderer = new THREE.WebGLRenderer({
                 canvas: canvas,
@@ -44,10 +43,9 @@
             });
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
             renderer.outputColorSpace = THREE.SRGBColorSpace;
-            // 地图只需要柔和地形明暗，不启用实时阴影，避免出现灰色投影层。
             renderer.shadowMap.enabled = false;
             renderer.setClearColor(0x000000, 0);
-            // 地图没有自动动画；只在相机、窗口或点位发生变化时请求一帧，避免离屏时持续占用 GPU。
+            // 相机、窗口或点位变化时请求渲染一帧
             let mapVisible = true;
             let mapRenderFrame = 0;
             let markersNeedProjection = true;
@@ -67,8 +65,7 @@
                     renderer.render(scene, camera);
                 });
             };
-            // 点位 DOM、平面图尺寸和地图容器可能在不同帧准备好。
-            // 连续请求两帧可避开首次布局尚未稳定时得到的旧尺寸，不需要恢复持续渲染循环。
+            // 连续等待两帧，让容器和点位完成布局后再投影
             const invalidateMarkerProjection = function invalidateMarkerProjection() {
                 markersNeedProjection = true;
                 requestMapRender();
@@ -104,7 +101,7 @@
             coastLight.position.set(8, 5, 4);
             scene.add(coastLight);
             const isFilePage = window.location.protocol === "file:";
-            // 保持原始 DEM 的经纬度比例，避免把山东省纵向拉长。
+            // 保持原始 DEM 的经纬度比例，避免把山东省纵向拉长
             const terrainWidth = MAP_VIEW.terrainWidth;
             const terrainHeightDimension = (terrainWidth * (config.bounds.north - config.bounds.south)) /
                 (config.bounds.east - config.bounds.west);
@@ -125,8 +122,7 @@
             let maskTexture = null;
             let heightWidth = 0;
             let heightHeight = 0;
-            // 只把公开的本地灰度高度图读入内存，不在浏览器中加载原始 GeoTIFF。
-            // 读取表示地面高低的灰度图及省界遮罩；本地双击模式使用内嵌数据。
+            // 读取表示地面高低的灰度图及省界遮罩；本地双击模式使用内嵌数据
             function loadHeightMap() {
                 const inline = window.SHANDONG_TERRAIN_INLINE;
                 if (isFilePage && inline) {
@@ -148,7 +144,7 @@
                     }
                     maskTexture = new THREE.DataTexture(rgbaMask, heightWidth, heightHeight, THREE.RGBAFormat, THREE.UnsignedByteType);
                     maskTexture.colorSpace = THREE.NoColorSpace;
-                    // DataTexture 默认不翻转 Y；高度数组和普通图片都按“北到南”读取，必须统一方向。
+                    // 高度数组和图片统一按北到南读取
                     maskTexture.flipY = true;
                     maskTexture.minFilter = THREE.NearestFilter;
                     maskTexture.magFilter = THREE.NearestFilter;
@@ -197,7 +193,7 @@
                 }
                 const maskImage = new Image();
                 maskImage.onload = function readLoadedProvinceMask() {
-                    // 读取掩膜像素，供高度采样使用；可见边界由 alphaMap 负责裁剪。
+                    // 读取掩膜像素，供高度采样使用；可见边界由 alphaMap 负责裁剪
                     const maskCanvas = document.createElement("canvas");
                     maskCanvas.width = maskImage.naturalWidth;
                     maskCanvas.height = maskImage.naturalHeight;
@@ -224,7 +220,7 @@
                 };
                 maskImage.src = config.maskDataUrl;
             }
-            // 把地图上的相对位置换成图片像素，取出该位置的高度值。
+            // 把地图上的相对位置换成图片像素，取出该位置的高度值
             function sampleHeight(percentX, percentY) {
                 if (!heightSamples) {
                     return null;
@@ -233,7 +229,7 @@
                 const y = Math.min(heightHeight - 1, Math.max(0, Math.round((percentY / 100) * (heightHeight - 1))));
                 return heightSamples[y * heightWidth + x] / 255;
             }
-            // 从遮罩图判断当前位置是否属于省内，避免省外也长出地形。
+            // 从遮罩图判断当前位置是否属于省内，避免省外也长出地形
             function sampleMask(percentX, percentY) {
                 if (!maskSamples) {
                     return 255;
@@ -242,7 +238,7 @@
                 const y = Math.min(heightHeight - 1, Math.max(0, Math.round((percentY / 100) * (heightHeight - 1))));
                 return maskSamples[y * heightWidth + x];
             }
-            // 按高度图调整网格顶点，并重新计算表面方向，让光照能表现山地起伏。
+            // 按高度图调整网格顶点，并重新计算表面方向，让光照能表现山地起伏
             function applyHeightMap() {
                 if (!heightSamples) {
                     return;
@@ -274,7 +270,7 @@
                     }
                     validVertices[index] = valueResult7;
                 }
-                // 省外像元仍需有连续高度，否则透明边界下会暴露出陡直的 DEM 断面。
+                // 省外像元仍需有连续高度，否则透明边界下会暴露出陡直的 DEM 断面
                 if (maskSamples) {
                     const columns = MAP_VIEW.gridColumns;
                     const rows = Math.floor(position.count / columns);
@@ -320,7 +316,7 @@
                     position.setZ(index, sampledHeights[index]);
                 }
                 carveRiverChannels();
-                // CPU 改顶点不会自动上传 GPU；漏掉此标记会让覆盖物悬在旧平面上。
+                // 标记顶点已更新，将新坐标上传到显卡
                 position.needsUpdate = true;
                 geometry.computeVertexNormals();
                 geometry.computeBoundingSphere();
@@ -328,7 +324,7 @@
                 invalidateMarkerProjection();
                 mapRoot.dataset.terrainData = "dem";
             }
-            // 高度图加载前先用平面占位，加载完成后由 applyHeightMap 覆盖。
+            // 高度图加载前先用平面占位，加载完成后由 applyHeightMap 覆盖
             const position = geometry.getAttribute("position");
             const terrainColors = position.clone();
             geometry.setAttribute("color", terrainColors);
@@ -337,7 +333,7 @@
                 terrainColors.setXYZ(index, 0.091, 0.184, 0.147);
             }
             geometry.computeVertexNormals();
-            // Huang 为黄河；源数据 Yi 走向存疑，沂河改用明确标注的参考图补绘。
+            // 黄河使用公开数据，其余河段使用参考图补绘
             function getDisplayedRivers() {
                 const publicRiverNames = new Set(["Huang"]);
                 const referenceRiverNames = new Set(["沂河", "大汶河", "徒骇河", "小清河", "潍河", "大沽河", "京杭运河（山东段示意）"]);
@@ -382,7 +378,7 @@
                 valueResult9 = items6;
                 return valueResult9;
             }
-            // 先把经纬度折线转成模型线段，距离计算不再关心数据源格式。
+            // 将经纬度折线转换为模型坐标线段
             function createRiverSegments() {
                 const segments = [];
                 const rivers = getDisplayedRivers();
@@ -431,7 +427,7 @@
                 }
                 return segments;
             }
-            // 仅补绘数据明确标出的入海末端；上限为 0.25 度，找不到海岸就保留原端点。
+            // 仅补绘数据明确标出的入海末端；上限为 0.25 度，找不到海岸就保留原端点
             function extendRiverMouth(river) {
                 const points = river.coordinates;
                 if (!river.extendEndToCoast || !maskSamples || points.length < 2) {
@@ -458,7 +454,7 @@
                 }
                 for (let distance = 0.002; distance <= 0.25; distance += 0.002) {
                     const next = [end[0] + dx / length * distance, end[1] + dy / length * distance];
-                    // 补到第一个海面像元，显示仍由 alphaMap 裁在省界上，不跨海连接岛屿。
+                    // 延伸至首个海面像元，由 alphaMap 裁切显示范围
                     if (!isLand(next)) {
                         let valueResult31;
                         const items41 = [];
@@ -484,7 +480,7 @@
                 else {
                     valueResult33 = 0;
                 }
-                // 投影限制在线段内；重复坐标退化为点，避免除以零。
+                // 投影限制在线段内；重复坐标退化为点，避免除以零
                 const projection = valueResult33;
                 return Math.hypot(x - start[0] - projection * dx, y - start[1] - projection * dy);
             }
@@ -501,16 +497,16 @@
                     items46.push(part49[index50]);
                 }
                 valueResult35 = items46;
-                // 公开单湖与参考图补绘合并判断水面，重叠处只开挖一次。
+                // 公开单湖与参考图补绘合并判断水面，重叠处只开挖一次
                 const lakes = valueResult35;
-                // 半径为 0.85 个网格间距，不是实测河宽；每次都在新采样的 DEM 上开槽。
+                // 显示河槽半径为 0.85 个网格间距，每次基于原始高度采样开槽
                 const radius = terrainWidth / (MAP_VIEW.gridColumns - 1) * 0.85;
                 const distances = new Float64Array(position.count).fill(radius);
                 const columns = MAP_VIEW.gridColumns;
                 const rows = MAP_VIEW.gridRows;
                 const cellWidth = terrainWidth / (columns - 1);
                 const cellHeight = terrainHeightDimension / (rows - 1);
-                // 只遍历线段包围盒内的顶点，避免每个顶点扫描整个省的水系。
+                // 只遍历线段包围盒内的顶点，避免每个顶点扫描整个省的水系
                 for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex += 1) {
                     const segment = segments[segmentIndex];
                     const start = segment[0];
@@ -585,7 +581,7 @@
                     else {
                         valueResult46 = 1 - distances[index] / radius;
                     }
-                    // 湖面按多边形填满，内环保留岛屿；与河槽重叠时只开挖一次。
+                    // 湖面按多边形填满，内环保留岛屿；与河槽重叠时只开挖一次
                     const amount = valueResult46;
                     if (inLake) {
                         lakeVertices++;
@@ -615,7 +611,7 @@
                 valueResult48 = result66;
                 mapRoot.dataset.referenceRivers = String(valueResult48.length);
             }
-            // 水平射线奇偶规则，只判断水面归属，不推算真实水深。
+            // 用水平射线与多边形的交点数判断是否位于水面内
             function isPointInLakeRing(x, y, ring) {
                 let inside = false;
                 for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
@@ -634,7 +630,7 @@
             const terrain = new THREE.Mesh(geometry, material);
             terrain.castShadow = false;
             terrain.receiveShadow = false;
-            // 默认与标准 2D 地图一致：北朝上、东朝右，不额外旋转或倾斜。
+            // 默认北朝上、东朝右
             terrain.position.y = 0.12;
             scene.add(terrain);
             const boundaryMaterial = new THREE.LineBasicMaterial({
@@ -652,11 +648,11 @@
                 if (!maskSamples) {
                     return true;
                 }
-                // 外轮廓已由共享边筛选排除，不再内缩省界，否则市界会提前断开。
+                // 使用原始省界位置，保持市界末端连续
                 return percentX >= 0 && percentX <= 100 && percentY >= 0 && percentY <= 100 &&
                     sampleMask(percentX, percentY) >= 128;
             }
-            // 将经纬度转换为模型坐标，边界线还要贴近当地地形高度。
+            // 将经纬度转换为模型坐标，边界线还要贴近当地地形高度
             function createBoundaryPoint(longitude, latitude) {
                 const percentX = ((longitude - config.bounds.west) / (config.bounds.east - config.bounds.west)) * 100;
                 const percentY = ((config.bounds.north - latitude) / (config.bounds.north - config.bounds.south)) * 100;
@@ -665,7 +661,7 @@
                 }
                 return new THREE.Vector3((percentX / 100) * terrainWidth - terrainWidth / 2, terrainHeightDimension / 2 - (percentY / 100) * terrainHeightDimension, terrainHeight(percentX, percentY) + MAP_VIEW.boundaryHeightOffset);
             }
-            // 在线段跨过遮罩时二分查找陆地侧交点，避免丢掉最后一个网格间距。
+            // 在线段跨过遮罩时二分查找陆地侧交点，避免丢掉最后一个网格间距
             function findBoundaryCoastPoint(inside, outside) {
                 let land = inside;
                 let sea = outside;
@@ -680,7 +676,7 @@
                 }
                 return createBoundaryPoint(land[0], land[1]);
             }
-            // 沿网格边和对角线切分：每段位于同一三角面内，插值高度才能全程贴地。
+            // 沿网格边和对角线切分：每段位于同一三角面内，插值高度才能全程贴地
             function splitBoundaryEdge(start, end) {
                 const columns = MAP_VIEW.gridColumns - 1;
                 const rows = MAP_VIEW.gridRows - 1;
@@ -734,13 +730,12 @@
                 valueResult52 = result77;
                 return valueResult52;
             }
-            // 端点排序让正向和反向线段使用同一个键；保留源坐标精度，不做模糊吸附。
+            // 按端点排序生成线段键，保留原坐标精度
             function edgeKey(start, end) {
                 return [start.join(','), end.join(',')].sort().join('|');
             }
             function createExcludedBoundaryEdges() {
-                // DataV 东营/滨州的独立四边形共同边：行政含义待核实，暂不作为市界展示。
-                // 精确排除已报告的四条边，不按面积过滤，避免隐藏其他真实飞地或闭合边界。
+                // 隐藏东营、滨州间行政含义待核实的四条边
                 const unverifiedRectangle = [
                     [118.40779, 38.026212], [118.419951, 38.025503],
                     [118.419319, 38.053119], [118.410001, 38.053277], [118.40779, 38.026212],
@@ -783,7 +778,7 @@
                 }
                 return edgeOwners;
             }
-            // 顺序：清理旧显存 -> 统计共享边 -> 排除/去重 -> 切分贴地 -> 更新全貌视野。
+            // 顺序：清理旧显存 -> 统计共享边 -> 排除/去重 -> 切分贴地 -> 更新全貌视野
             function drawAdministrativeBoundaries() {
                 if (!heightSamples || !Array.isArray(window.SHANDONG_PREFECTURES)) {
                     return;
@@ -830,7 +825,7 @@
                                 for (let index = 1; index < ring.length; index++) {
                                     const key = edgeKey(ring[index - 1], ring[index]);
                                     if (excludedEdges.has(key) || edgeOwners.get(key).size < 2 || drawnEdges.has(key)) {
-                                        // 被跳过的边必须断开，不能让其前后端点被自动连成新的直线。
+                                        // 在跳过的边处断开折线
                                         flushSegment();
                                         previousCoordinate = null;
                                         continue;
@@ -885,28 +880,28 @@
                 fitFullView();
             }
             const cameraTarget = new THREE.Vector3(0, 0, 0);
-            // 默认拉远，保证完整山东轮廓不会被视口裁掉。
+            // 默认拉远，保证完整山东轮廓不会被视口裁掉
             let cameraDistance = MAP_VIEW.defaultDistance;
             let fitZoom = 1;
-            // 默认正上方；抬升角只由右侧滑条控制。
+            // 默认正上方；抬升角只由右侧滑条控制
             let cameraElevation = 0;
             let isDragging = false;
             let lastPointer = { x: 0, y: 0 };
             const activePointers = new Map();
             let pinchDistance = 0;
             let suppressGestureClick = false;
-            // 根据旋转、缩放和拖动状态摆放相机，再让点位跟随新视角。
+            // 根据旋转、缩放和拖动状态摆放相机，再让点位跟随新视角
             function updateCamera() {
                 cameraElevation = THREE.MathUtils.clamp(cameraElevation, 0, MAP_VIEW.maxElevation);
-                // 正角度滑条对应视觉上的“向上抬升”，因此相机沿 Y 轴负方向移动。
+                // 正角度滑条对应视觉上的“向上抬升”，因此相机沿 Y 轴负方向移动
                 const horizontal = Math.cos(cameraElevation) * cameraDistance;
                 camera.position.set(cameraTarget.x, cameraTarget.y - Math.sin(cameraElevation) * cameraDistance, cameraTarget.z + horizontal);
                 camera.zoom = (fitZoom * MAP_VIEW.defaultDistance) / cameraDistance;
                 camera.lookAt(cameraTarget);
                 camera.updateProjectionMatrix();
-                // fitFullView 会在同一事件中立即投影坐标，不能等下一帧渲染再更新矩阵。
+                // 立即更新相机矩阵，供 fitFullView 投影使用
                 camera.updateMatrixWorld(true);
-                // 将状态写在地图元素上，便于测试和排查，不包含任何用户数据。
+                // 将视角状态写入地图元素，供测试和排查使用
                 mapRoot.dataset.cameraElevation = cameraElevation.toFixed(4);
                 mapRoot.dataset.cameraDistance = cameraDistance.toFixed(2);
                 mapRoot.dataset.cameraTargetX = cameraTarget.x.toFixed(3);
@@ -930,7 +925,7 @@
                 }
                 renderer.setSize(rect.width, rect.height, false);
                 const aspect = rect.width / rect.height;
-                // 根据容器比例自动留出边距，窄屏也必须默认显示山东全貌。
+                // 根据容器比例自动留出边距，窄屏也必须默认显示山东全貌
                 const viewWidth = Math.max(terrainWidth * MAP_VIEW.viewportPadding, terrainHeightDimension * MAP_VIEW.viewportPadding * aspect);
                 const viewHeight = viewWidth / aspect;
                 camera.left = -viewWidth / 2;
@@ -941,10 +936,9 @@
                 fitFullView();
                 invalidateMarkerProjection();
             }
-            // 计算能容纳整张地图的视野，初始化或复位时不把省界裁掉。
+            // 计算容纳完整省界的视野
             function fitFullView() {
-                // 用默认地图距离计算“全貌基准”，不要把用户当前缩放状态混进 fitZoom。
-                // 这样浏览器缩放或窗口尺寸变化后，用户仍能继续使用原来的地图缩放级别。
+                // 按默认距离计算基准视野，窗口变化后保留用户缩放比例
                 const userDistance = cameraDistance;
                 cameraDistance = MAP_VIEW.defaultDistance;
                 fitZoom = 1;
@@ -1022,7 +1016,7 @@
                 requestMapRender();
             }
             function terrainHeight(percentX, percentY) {
-                // 与 PlaneGeometry 的三角剖分一致，包含省界附近修补过的顶点。
+                // 与 PlaneGeometry 的三角剖分一致，包含省界附近修补过的顶点
                 const columns = MAP_VIEW.gridColumns;
                 const rows = MAP_VIEW.gridRows;
                 const x = THREE.MathUtils.clamp(percentX / 100, 0, 1) * (columns - 1);
@@ -1045,8 +1039,7 @@
                 }
                 return valueResult112;
             }
-            // 点位与地形共享同一组百分比坐标，旋转或缩放时重新投影到屏幕。
-            // 点位按钮属于网页，不属于 3D 模型；这里把地图坐标投影到屏幕位置。
+            // 将地图坐标投影到屏幕，更新点位按钮的位置
             function projectMarkers() {
                 const rect = mapRoot.getBoundingClientRect();
                 if (mapRoot.dataset.mapMode === "flat") {
@@ -1077,8 +1070,8 @@
                         const displayHeight = displayWidth / imageRatio;
                         const imageLeft = (rect.width - displayWidth) / 2;
                         const imageTop = (rect.height - displayHeight) / 2;
-                        // 图片左侧保留了队伍署名，按山东轮廓的实际边界校准点位投影。
-                        // 这个范围只用于简化平面图；3D 版仍直接使用 DEM 的经纬度范围。
+                        // 图片左侧保留了队伍署名，按山东轮廓的实际边界校准点位投影
+                        // 这个范围只用于简化平面图；3D 版仍直接使用 DEM 的经纬度范围
                         const flatMapBounds = { left: 0.177, right: 0.966, top: 0.099, bottom: 0.911 };
                         const items156 = (mapRoot.querySelectorAll(".map-marker") as NodeListOf<HTMLElement>);
                         for (let index158 = 0; index158 < items156.length; index158++) {
@@ -1137,7 +1130,7 @@
                 }
             }
             mapRoot.addEventListener("pointerdown", function handlePointerdown(event) {
-                // 新的一次按下（包括控件）不应继承上一次拖动的点击抑制。
+                // 新触点按下时重置上次拖动的点击抑制
                 if (activePointers.size === 0) {
                     suppressGestureClick = false;
                 }
@@ -1216,7 +1209,7 @@
                 const rect = mapRoot.getBoundingClientRect();
                 const worldPerPixelX = (camera.right - camera.left) / (camera.zoom * rect.width);
                 const worldPerPixelY = (camera.top - camera.bottom) / (camera.zoom * rect.height);
-                // 相机和目标一起沿屏幕平移方向移动，保持相对姿态不变。
+                // 相机和目标一起沿屏幕平移方向移动，保持相对姿态不变
                 const elements = camera.matrixWorld.elements;
                 const screenRight = new THREE.Vector3(elements[0], elements[1], elements[2]);
                 const screenUp = new THREE.Vector3(elements[4], elements[5], elements[6]);
@@ -1311,7 +1304,7 @@
             new ResizeObserver(resize).observe(mapRoot);
             const markerRoot = (mapRoot.querySelector("#mapMarkers") as HTMLElement);
             if (markerRoot) {
-                // 筛选条件变化时 map-browser.js 会重建点位；监听子节点变化后重新投影新元素。
+                // 监听筛选后重建的点位，重新投影位置
                 new MutationObserver(invalidateMarkerProjection).observe(markerRoot, { childList: true });
             }
             const flatMapImage = (mapRoot.querySelector("#shandongFlatMapImage") as HTMLImageElement);

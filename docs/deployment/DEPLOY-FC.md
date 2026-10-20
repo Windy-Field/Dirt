@@ -1,20 +1,6 @@
 # 阿里云函数计算 FC 部署
 
-项目名称：泥云智探｜齐鲁封泥智慧人文平台
-
-本项目通过 `scripts/package-fc.ps1` 生成 FC Web 函数代码包，用来提供静态网页、AI 代理和数据库 API。
-
-## 推荐架构
-
-更稳妥的公网部署方式是：
-
-```text
-浏览器 → OSS 静态网站 / 自定义域名
-              ↓ API 请求
-          FC Web 函数 → 百炼 / RDS
-```
-
-当前项目使用同一个 `server.js` 托管前端和 API。若以后拆分到 OSS，仍可让 FC 只提供 `/api/*`。
+网站通过 FC Web 函数运行，由 `server.js` 提供网页、AI 代理和数据库 API
 
 ## 当前服务配置
 
@@ -53,7 +39,7 @@ DB_PASSWORD=云数据库账号密码
 DB_CONNECTION_LIMIT=5
 ```
 
-FC 与 RDS 应位于同一地域和可通信的 VPC。云端 `DB_HOST` 不能填写 `localhost`。
+FC 与 RDS 使用同一地域和互通的 VPC，`DB_HOST` 填写 RDS 内网地址
 
 前端和 API 分开部署时，建议设置：
 
@@ -61,7 +47,7 @@ FC 与 RDS 应位于同一地域和可通信的 VPC。云端 `DB_HOST` 不能填
 FRONTEND_ORIGIN=https://你的正式前端地址
 ```
 
-HTTPS 已经稳定后才设置 `ENABLE_HSTS=true`。所有密钥和密码只能放在 FC 环境变量中，不要写进代码包。
+HTTPS 稳定运行后可设置 `ENABLE_HSTS=true`，密钥和密码保存在 FC 环境变量中
 
 ## Web 函数设置
 
@@ -82,9 +68,9 @@ HTTPS 已经稳定后才设置 `ENABLE_HSTS=true`。所有密钥和密码只能�
 npm run package:fc
 ```
 
-脚本会执行 `npm run check` 和 `npm run build`，清理并重建 `deploy/fc/dist/`，同步根目录的 `server.js` 与 `server/`，在 `deploy/fc/` 内执行 `npm ci --omit=dev` 安装生产依赖（`dotenv` 和 `mysql2`），然后生成 `releases/niyun-zhitan-fc.zip`。脚本还会检查部署入口是否齐全，并拒绝包含 `.env`、`.git` 或 `docs/` 的压缩包。
+脚本会执行 `npm run check` 和 `npm run build`，清理并重建 `deploy/fc/dist/`，同步根目录的 `server.js` 与 `server/`，在 `deploy/fc/` 内执行 `npm ci --omit=dev` 安装生产依赖（`dotenv` 和 `mysql2`），然后生成 `releases/niyun-zhitan-fc.zip`。脚本还会检查部署入口是否齐全，并拒绝包含 `.env`、`.git` 或 `docs/` 的压缩包
 
-FC 自定义运行时不会执行 `npm install`，因此 `node_modules/` 必须随压缩包一起上传。打包使用 .NET `ZipArchive` 写入正斜杠条目名，避免 Windows PowerShell 5.1 的 `Compress-Archive` 生成反斜杠条目名导致 Linux 解压失败。
+运行依赖随 `node_modules/` 一起上传。压缩包内使用正斜杠路径，兼容 Linux
 
 上传 zip 后，解压根目录应直接包含：
 
@@ -97,20 +83,19 @@ node_modules/
 dist/
 ```
 
-不要上传整个项目目录，也不要让这些文件外面再套一层 `deploy/fc/`。`deploy/fc/dist/` 是生成目录，不要手工编辑；页面改动应写入源码后重新打包。
+以上文件直接位于压缩包根目录。修改页面或服务端源码后重新打包
 
 ## 前端地址配置
 
-如果网页与 API 同域，可以将 [js/config.ts](../../js/config.ts) 中对应 API 地址设为空字符串，让浏览器使用同域 `/api/*`。部署包会在构建时把 TypeScript 编译结果放入 `dist/.runtime/`。
+如果网页与 API 同域，可以将 [js/config.ts](../../js/config.ts) 中对应 API 地址设为空字符串，让浏览器使用同域 `/api/*`。部署包会在构建时把 TypeScript 编译结果放入 `dist/.runtime/`
 
 如果前端部署在 OSS、API 部署在 FC：
 
-1. 将 `AI_API_BASE_URL` 指向 FC 公网地址。
-2. 数据库模式需要将 `API_BASE_URL` 指向 FC 地址。
-3. 将 FC 环境变量 `FRONTEND_ORIGIN` 设置为 OSS 或自定义域名的完整 HTTPS 地址。
-4. 根据需要开启 `USE_DATABASE` 和 `USE_QUIZ_DATABASE`。
+1. 将 `AI_API_BASE_URL` 指向 FC 公网地址
+2. 数据库模式需要将 `API_BASE_URL` 指向 FC 地址
+3. 将 FC 环境变量 `FRONTEND_ORIGIN` 设置为 OSS 或自定义域名的完整 HTTPS 地址
+4. 根据需要开启 `USE_DATABASE` 和 `USE_QUIZ_DATABASE`
 
-不要把 API Key 写入 `js/config.ts`，该文件会公开给所有访客。
 
 ## 部署后检查
 
@@ -128,7 +113,7 @@ GET /api/quiz/start
 {"server":"ok","database":"ok"}
 ```
 
-未配置数据库时返回 `database: "not-configured"`，这不影响静态页面和 AI 接口。
+未配置数据库时返回 `database: "not-configured"`，这不影响静态页面和 AI 接口
 
 单题判定：
 
@@ -139,12 +124,12 @@ Content-Type: application/json
 {"questionId": 1, "answer": "B"}
 ```
 
-`GET /api/quiz/start` 应返回最多十道不重复题目和 `scorePerQuestion`，且不包含正确答案。
+`GET /api/quiz/start` 返回最多十道题目和 `scorePerQuestion`，正确答案在提交后返回
 
 ## 上线前检查
 
-- 确认 `.env`、API Key 和数据库密码不在代码包或 Git 历史中。
-- RDS 不开放 `0.0.0.0/0`，网站使用权限受限的数据库账号。
-- `FRONTEND_ORIGIN` 不长期使用 `*`。
-- 在 API 网关或 WAF 增加统一限流、日志和费用告警。
-- 保留 DEM、行政边界、图片、字体和音乐所需的来源与授权说明。
+- 确认 `.env`、API Key 和数据库密码不在代码包或 Git 历史中
+- RDS 不开放 `0.0.0.0/0`，网站使用权限受限的数据库账号
+- `FRONTEND_ORIGIN` 不长期使用 `*`
+- 在 API 网关或 WAF 增加统一限流、日志和费用告警
+- 保留 DEM、行政边界、图片、字体和音乐所需的来源与授权说明

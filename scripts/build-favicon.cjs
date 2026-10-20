@@ -18,7 +18,7 @@ async function buildFavicons() {
   await sharp(source, { density: 384 }).resize(180, 180).flatten({ background: '#ad342b' })
     .png().toFile(path.join(branding, 'apple-touch-icon.png'));
 
-  // ICO directory entries point to embedded PNG images, one per native size.
+  // 为每种尺寸写入 PNG 数据的位置和长度
   const header = Buffer.alloc(6 + sizes.length * 16);
   header.writeUInt16LE(1, 2);
   header.writeUInt16LE(sizes.length, 4);

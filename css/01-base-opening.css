@@ -1,18 +1,9 @@
-/* Hallmark · macrostructure: Digital Museum Scroll · tone: Qilu epigraphy · anchor hue: cinnabar */
-/* Hallmark · pre-emit critique: P5 H4 E5 S5 R4 V4 · contrast: pass · mobile: pass */
 /*
- * 全局基础与开屏样式。
- * tokens.css 管理设计变量；导航、栏目和弹窗布局在 02-content-layout.css。
- * 后续专题样式按 index.html 顺序叠加，本文件不再包含全部页面样式。
- *
- * 视觉修改速查：
- * - 改全站颜色、字体、内容宽度、栏目留白：css/tokens.css 顶部
- * - 改栏目进入/消失速度和位移：--motion-reveal-* 与 --motion-child-*
- * - 改按钮等小交互速度：--dur-short / --dur-medium / --dur-long
- * - 改某个具体板块的布局：在 css 目录搜索对应板块名或类名
+ * 全局基础与开屏样式
+ * 颜色、字体和动效参数见 tokens.css，栏目布局见 02-content-layout.css
  */
 
-/* ==================== 01. 全局基础：字体、颜色、光标和页面背景 ==================== */
+/* 01. 全局基础：字体、颜色、光标和页面背景 */
 @font-face {
   font-family: "Sanji Bangshu Web";
   src: url("../assets/fonts/sanji-bangshu.ttf") format("truetype");
@@ -57,7 +48,7 @@ img[loading="lazy"].loaded {
   filter: blur(0);
 }
 
-/* 资源明确失败或超时后显示占位内容，不让失败状态一直伪装成加载中。 */
+/* 图片加载失败或超时后显示占位内容 */
 img[loading="lazy"].load-timeout {
   opacity: 1;
   filter: blur(0);
@@ -111,7 +102,7 @@ img[loading="lazy"].load-timeout {
   overflow: hidden;
 }
 
-/* 典雅中心呼吸光晕 */
+/* 中心呼吸光晕 */
 .ambient-glow {
   position: absolute;
   top: 50%;
@@ -253,7 +244,7 @@ img[loading="lazy"].load-timeout {
   perspective: 1200px;
 }
 
-/* 卷轴左右轴杆（合拢时双轴并排呈现真实双轴封缄形态，展开时向两侧对称滑动） */
+/* 左右轴杆随卷轴向两侧展开 */
 .scroll-roller {
   position: absolute;
   top: 0;
@@ -401,7 +392,7 @@ img[loading="lazy"].load-timeout {
   opacity: 0.85;
 }
 
-/* 卷轴右侧 IP 不参与正文排版，避免人物出现时挤动标题。 */
+/* 右侧角色使用独立图层，保持标题位置稳定 */
 .opening-scroll-ip {
   position: absolute;
   z-index: 1;
@@ -525,7 +516,7 @@ img[loading="lazy"].load-timeout {
   overflow: visible;
 }
 
-/* 沂山碑篆体已转为 SVG 轮廓，首帧直接绘制，不触发字体交换。 */
+/* 篆字使用沂山碑字体提取的 SVG 轮廓 */
 .seal-inscription-glyph {
   fill: #e8a892;
   stroke: #52170f;
@@ -831,7 +822,7 @@ body {
   overflow-x: hidden;
   background-image: radial-gradient(circle at 50% 50%, var(--theme-body-glow) 0%, transparent 85%),
                     repeating-linear-gradient(0deg, transparent 0, transparent 3px, var(--theme-body-texture) 3px, var(--theme-body-texture) 4px);
-  /* 确保 JavaScript 加载前页面不是纯黑 */
+  /* 脚本加载前使用开屏底色 */
   min-height: 100vh;
 }
 
@@ -840,7 +831,7 @@ body {
   display: flex;
 }
 
-/* 背景微尘画布：由 page-effects.js 绘制，只负责装饰，不接收鼠标操作。 */
+/* 背景微尘画布：由 page-effects.js 绘制，只负责装饰，不接收鼠标操作 */
 #ambientCanvas {
   position: fixed;
   inset: 0;

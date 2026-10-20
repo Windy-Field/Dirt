@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const playwright = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const chromium = playwright.chromium;
 
-// 检查课程视频在不同屏幕宽度下的封面、播放、拖动和错误恢复。
+// 检查课程视频在不同屏幕宽度下的封面、播放、拖动和错误恢复
 async function verifyCourseVideo() {
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
   try {

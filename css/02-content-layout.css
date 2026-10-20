@@ -1,4 +1,4 @@
-/* ==================== 02. 顶部导航：品牌、菜单、搜索和手机菜单按钮 ==================== */
+/* 02. 顶部导航：品牌、菜单、搜索和手机菜单按钮 */
 .site-header {
   position: fixed; z-index: 100; top: 0; left: 0; right: 0; height: var(--layout-header-height); padding: 0 4.5vw;
   display: grid; grid-template-columns: minmax(13.75rem, 1fr) auto minmax(6.25rem, 1fr); align-items: center;
@@ -33,7 +33,7 @@
 .search-button:focus-visible, .music-button:focus-visible, .settings-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .menu-toggle { display: none; }
 
-/* ==================== 03. 首页首屏：标题、按钮、统计数字和封泥主视觉 ==================== */
+/* 03. 首页首屏：标题、按钮、统计数字和封泥主视觉 */
 .hero { min-height: 100vh; padding: 7.75rem 8vw 5.25rem; display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; position: relative; overflow: hidden; background: var(--section-bg); border-bottom: 1px solid var(--line); }
 .hero::after { content: ""; position: absolute; inset: 4.75rem 0 0 49%; opacity: .22; background-image: linear-gradient(rgba(36,35,33,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(36,35,33,.12) 1px, transparent 1px); background-size: 3.25rem 3.25rem; mask-image: linear-gradient(90deg, transparent, black 18%, black); }
 .hero-copy { position: relative; z-index: 2; max-width: 36.875rem; padding-right: 6vw; }
@@ -69,15 +69,15 @@
 .scroll-cue i::before { content: ""; position: absolute; left: 50%; top: 0; width: 1px; height: 2.15rem; background: rgba(36,35,33,.48); transform: translateX(-50%); }
 .scroll-cue i::after { content: ""; position: absolute; left: 50%; bottom: .2rem; width: .55rem; height: .55rem; border-right: 1px solid rgba(36,35,33,.62); border-bottom: 1px solid rgba(36,35,33,.62); transform: translateX(-50%) rotate(45deg); }
 
-/* ==================== 04. 公共内容容器和“我们的工作”板块 ==================== */
+/* 04. 公共内容容器和“我们的工作”板块 */
 .section-shell { width: min(var(--layout-content-max), var(--layout-content-width)); margin: 0 auto; }
 .intro { padding: 6.875rem 0 6.25rem; background: var(--section-bg); }
 .section-heading h2 { margin: 0; font: 600 clamp(2.125rem, 4vw, 3.4375rem)/1.38 var(--serif); }
 .compact-heading { max-width: none; }
 .compact-heading h2 { white-space: nowrap; }
 
-/* ==================== 05. 认识封泥与封泥故事板块 ==================== */
-/* 两个板块共用纸本文字和编号风格。数字手卷的详细样式在文件后部。 */
+/* 05. 认识封泥与封泥故事板块 */
+/* 两个板块共用纸本文字和编号风格。数字手卷的详细样式在文件后部 */
 .knowledge, .stories { padding: 7rem 0; background: var(--section-bg); }
 .story-grid { margin-top: 3.25rem; display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .story-card { min-width: 0; min-height: 16rem; padding: 1.8rem; display: grid; grid-template-columns: 3.2rem 1fr; gap: 1.25rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--color-paper-soft); }
@@ -85,20 +85,20 @@
 .story-card h3 { margin: .8rem 0 .7rem; font: 600 clamp(1.4rem, 2vw, 1.8rem)/1.5 var(--serif); }
 .story-card p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.9; }
 
-/* ==================== 07. 文化地图、地点详情和资料索引板块 ==================== */
+/* 07. 文化地图、地点详情和资料索引板块 */
 .map-section { padding: 6.5625rem 0; color: var(--ink); background: var(--color-paper); }
 .map-heading { display: flex; align-items: end; justify-content: space-between; gap: 2.5rem; }
 .map-heading h2 { color: var(--ink); }
 .map-heading > p { max-width: 24rem; margin: 0 0 0.5rem; color: var(--muted); font-size: .95rem; line-height: 1.8; }
 .map-toolbar { display: flex; align-items: center; gap: 0.5625rem; margin: 2rem 0 1.25rem; padding: .3rem; background: rgba(53,95,87,.075); }
 .map-toolbar-spacer { position: relative; flex: 1 1 auto; min-width: 1rem; }
-/* 桌面端把分隔线放在两组按钮之间的空白正中，左右视觉留白保持一致。 */
+/* 桌面端把分隔线放在两组按钮之间的空白正中，左右视觉留白保持一致 */
 .map-toolbar-spacer::after { content: ""; position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: var(--line); transform: translateX(-50%); }
 .map-mode-switch { display: flex; flex: 0 0 auto; gap: .35rem; }
 .map-mode-button { white-space: nowrap; }
 .filter-chip { padding: .65rem 1.15rem; color: var(--green-dark); border: 1px solid rgba(41,62,56,.25); border-radius: 2px; background: transparent; cursor: pointer; font-size: .9rem; }
 .filter-chip.active, .filter-chip:hover { color: #302821; background: #d8c6ae; border-color: #d8c6ae; }
-/* 桌面端地图与介绍框固定同高，地点说明长短不会再改变整个模块尺寸。 */
+/* 地图与介绍框固定同高，长说明在框内滚动 */
 .map-layout { height: var(--layout-map-panel-height); min-height: 0; display: grid; grid-template-columns: 1.65fr .7fr; margin-top: .4rem; border: 1px solid rgba(36,59,53,.2); box-shadow: 0 2rem 4.5rem rgba(35,48,42,.12); }
 .shandong-map { position: relative; height: 100%; min-height: 0; overflow: hidden; background-color: #183a34; background-image: radial-gradient(circle at 50% 45%, rgba(103,145,132,.12), transparent 42%), linear-gradient(135deg, #244941, #132f2b); background-size: 2.75rem 2.75rem; }
 .shandong-terrain-canvas { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
@@ -167,7 +167,7 @@
 }
 .map-legend { position: absolute; z-index: 4; left: 1.25rem; right: 1.25rem; bottom: 1.125rem; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .35rem .75rem; color: #aebbb6; font-size: 0.625rem; }
 .map-caption { margin-left: auto; text-align: right; }
-/* 精度说明独占一行，窄屏可自然换行，不挤压点位图例和图谱名称。 */
+/* 精度说明独占一行，窄屏可自然换行，不挤压点位图例和图谱名称 */
 .map-accuracy-note { flex-basis: 100%; font: inherit; line-height: 1.5; text-align: right; }
 .map-legend span:first-child i { display: inline-block; width: 0.4375rem; height: 0.4375rem; margin-right: 0.4375rem; border-radius: 50%; background: #ead3b4; }
 .site-panel { height: 100%; min-height: 0; padding: 2.375rem 2.125rem; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; background: var(--color-paper); color: var(--ink); overflow: hidden; }
@@ -231,7 +231,7 @@ main > section + section { border-top: 1px solid rgba(36, 35, 33, .14); }
 .footer-icp a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .copyright { margin: 0; padding-top: .15rem; color: var(--color-ink-muted); font-size: 0.6875rem; }
 
-/* 搜索弹窗：限制最大高度，内容过多时只滚动弹窗内部。 */
+/* 搜索弹窗：限制最大高度，内容过多时只滚动弹窗内部 */
 .search-dialog { width: min(45rem, 90vw); max-height: min(42rem, 88vh); padding: 0; border: 0; background: transparent; overflow: visible; }
 .search-dialog::backdrop { background: rgba(25,28,27,.75); }
 .search-box { position: relative; max-height: min(42rem, 88vh); padding: 3.125rem; overflow: auto; background: var(--paper); will-change: transform, opacity; }
@@ -240,7 +240,7 @@ main > section + section { border-top: 1px solid rgba(36, 35, 33, .14); }
 .dialog-close:hover { color: var(--color-accent); border-color: var(--color-rule); background: var(--color-paper-deep); }
 .search-box label { display: block; margin: 0 0 1.75rem; font: 600 1.875rem var(--serif); }
 .search-row { display: grid; grid-template-columns: minmax(0, 1fr) 5rem; align-items: stretch; gap: .75rem; }
-/* 输入框与清除按钮叠放；按钮只在存在搜索文字时显示。 */
+/* 输入框与清除按钮叠放；按钮只在存在搜索文字时显示 */
 .search-input-wrap { position: relative; min-width: 0; display: grid; align-items: center; border: 1px solid var(--color-rule-strong); border-radius: var(--radius-control); background: var(--color-paper-soft); transition: border-color var(--dur-short) var(--ease-out), box-shadow var(--dur-short) var(--ease-out); }
 .search-input-wrap:focus-within { border-color: var(--color-focus); box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-focus) 24%, transparent); }
 .search-row input { width: 100%; min-width: 0; padding: 0.8125rem 3rem 0.8125rem 3px; border: 0; outline: 0; background: transparent; }
@@ -263,14 +263,14 @@ main > section + section { border-top: 1px solid rgba(36, 35, 33, .14); }
 .search-result-group h3 { margin: 0; padding: 0.625rem 0; display: flex; justify-content: space-between; color: var(--color-ink-muted); border-bottom: 1px solid var(--color-rule); font: 600 0.75rem var(--font-body); }
 .search-result-group h3 span { min-width: 1.5rem; text-align: right; color: var(--color-accent); }
 .dialog-close:focus-visible, .search-clear:focus-visible, .search-row > button:focus-visible, .search-results button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-/* 点击搜索结果后，让对应藏品或图录条目短暂描边，帮助用户确认跳转位置。 */
+/* 点击搜索结果后，让对应藏品或图录条目短暂描边，帮助用户确认跳转位置 */
 .relic-card.search-target, .source-index article.search-target { animation: search-target var(--effect-search-highlight-duration) var(--ease-out); }
 @keyframes search-cleared { 0% { background: var(--color-cinnabar-soft); } 100% { background: transparent; } }
 @keyframes search-target { 0%, 35% { box-shadow: 0 0 0 4px var(--color-cinnabar-soft), 0 0 0 1px var(--color-accent); } 100% { box-shadow: none; } }
 .toast { position: fixed; z-index: 300; left: 50%; bottom: 1.75rem; max-width: min(32.5rem, 86vw); padding: 0.75rem 1.125rem; color: #fff; background: #262c2a; box-shadow: 0 0.75rem 1.875rem rgba(0,0,0,.2); opacity: 0; pointer-events: none; transform: translate(-50%, 1.125rem); transition: .25s; font-size: 0.75rem; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* 显示设置抽屉：从导航栏打开，所有修改即时预览。 */
+/* 显示设置抽屉：从导航栏打开，所有修改即时预览 */
 .settings-dialog { width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; overflow: clip; pointer-events: none; }
 .settings-dialog[open] { display: flex; justify-content: flex-end; pointer-events: auto; }
 .settings-dialog::backdrop { background: rgba(25, 28, 27, .58); }
@@ -347,10 +347,10 @@ main > section + section { border-top: 1px solid rgba(36, 35, 33, .14); }
 #doneSettings { color: var(--color-accent-ink); border-color: var(--color-accent); background: var(--color-accent); }
 #doneSettings:hover { background: var(--color-accent-dark); }
 
-/* 阅读设置仅作用于正文和说明，不缩放导航、按钮与展示标题。 */
+/* 阅读设置仅作用于正文和说明，不缩放导航、按钮与展示标题 */
 html :is(.hero-lead, .heading-note, .intro-copy, .story-details p, .relic-info p, .map-heading > p, #siteDescription, .map-knowledge p, .source-findings p, .source-index p, .course-recap-copy p, .course-scroll-footer p, .ai-intro > p:not(.eyebrow), .ai-intro li) { font-size: .9rem; line-height: 1.8; }
 
-/* 动效强度主要控制空间位移；0% 时保留内容但取消移动。 */
+/* 动效强度主要控制空间位移；0% 时保留内容但取消移动 */
 html[data-motion="0"] { scroll-behavior: auto; }
 html[data-motion="0"] [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
 html[data-motion="0"] .collection-grid .relic-card,
@@ -361,7 +361,7 @@ html[data-motion="0"] .source-index article { opacity: 1; transform: none; trans
 html[data-motion="0"] .hero-relic-main { animation: none; }
 html[data-motion="0"] .hero-relic { transform: none !important; }
 
-/* ==================== 08. 开源课程板块 ==================== */
+/* 08. 开源课程板块 */
 .course-section { padding: 7rem 0; background: var(--section-bg); }
 .course-browser { margin-top: 3.25rem; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(18rem, .75fr); gap: var(--space-lg); align-items: start; }
 .course-browser-main { min-width: 0; }
@@ -479,10 +479,10 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
   .course-scroll-hint { padding-inline: var(--space-md); }
 }
 
-/* ==================== 09. 封泥牌具展示板块 ==================== */
+/* 09. 封泥牌具展示板块 */
 .creative-section { padding: 7rem 0; color: var(--ink); background: var(--section-bg); }
 
-/* 封泥牌具：Canvas 使用全宽展台，不再使用装饰卡片。 */
+/* 封泥牌具画布铺满展台 */
 .product-3d-section { padding-bottom: 4rem !important; overflow: clip; }
 .product-3d-heading { padding-bottom: var(--space-xl); }
 .product-3d-showcase { width: min(var(--layout-content-max), var(--layout-content-width)); min-width: 0; margin-inline: auto; color: var(--color-dark-ink); background: var(--color-dark-surface); border: var(--rule-hairline) solid var(--color-rule-strong); }
@@ -530,7 +530,7 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
   .product-3d-caption h3 { margin-top: var(--space-lg); font-size: var(--text-xl); }
 }
 
-/* ==================== 10. AI 助手：介绍文字、聊天窗口、上传和快捷问题 ==================== */
+/* 10. AI 助手：介绍文字、聊天窗口、上传和快捷问题 */
 .ai-section { padding: 7.5rem 0; display: grid; grid-template-columns: minmax(0, .85fr) minmax(24rem, 1.15fr); align-items: center; gap: clamp(3rem, 8vw, 8rem); background: var(--section-bg); }
 .ai-intro h2 { margin: 0; font: 600 clamp(2.25rem, 4vw, 3.5rem)/1.45 var(--serif); }
 .ai-intro > p:not(.eyebrow) { margin: 1.5rem 0; color: var(--muted); font-size: .85rem; line-height: 1.9; }
@@ -540,7 +540,7 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
 .ai-console { min-height: 38rem; padding: 1.3rem; display: flex; flex-direction: column; background: var(--color-paper-soft); border: 1px solid var(--line); }
 .ai-console-head { display: grid; grid-template-columns: 3.1rem 1fr 2.5rem; align-items: center; gap: .85rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
 .mascot-mark { width: 3rem; aspect-ratio: 1; position: relative; overflow: hidden; border: 1px solid rgba(168, 51, 42, .35); border-radius: 50%; background: #f4dfb1; }
-/* The source canvas includes the body and tail, so align the face instead of the full PNG. */
+/* 按角色面部位置对齐图片 */
 .mascot-mark img { position: absolute; width: 235%; max-width: none; left: 62%; top: 73%; transform: translate(-50%, -50%); }
 .ai-console-head strong, .ai-console-head small { display: block; }
 .ai-console-head strong { font: 600 1rem var(--serif); }
@@ -615,7 +615,7 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
 .map-source-image { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .shandong-map.has-source-image::before, .shandong-map.has-source-image .map-watermark { display: none; }
 
-/* ==================== 11. 第一组响应式规则：平板和手机基础布局 ==================== */
+/* 11. 第一组响应式规则：平板和手机基础布局 */
 @media (max-width: 75rem) {
   .course-layout { grid-template-columns: minmax(0, 1.15fr) minmax(17rem, .85fr); }
   .ai-section { gap: 3.5rem; }
@@ -663,7 +663,7 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
   .filter-chip { flex: 0 0 auto; }
 }
 
-/* 中等宽度以下恢复折叠菜单；菜单按钮固定在导航栏水平中心。 */
+/* 中等宽度以下恢复折叠菜单；菜单按钮固定在导航栏水平中心 */
 @media (max-width: 82rem) {
   .site-header { grid-template-columns: minmax(0, 1fr) auto; }
   .menu-toggle {
@@ -732,7 +732,7 @@ html[data-motion="0"] .hero-relic { transform: none !important; }
   .search-box label { font-size: 1.5rem; }
 }
 
-/* 极窄屏隐藏非必要时钟，优先保留品牌、菜单、搜索和设置操作。 */
+/* 极窄屏隐藏非必要时钟，优先保留品牌、菜单、搜索和设置操作 */
 @media (max-width: 35rem) {
   .header-clock { display: none; }
   .site-header { grid-template-columns: minmax(0, 1fr) auto; }

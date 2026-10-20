@@ -11,13 +11,13 @@ const props = defineProps({
   answered: { type: Boolean, default: false },
 });
 
-// 只显示当前题的判题结果，防止切题时上一题的异步结果短暂闪现。
+// 只显示当前题的判题结果，防止切题时上一题的异步结果短暂闪现
 const currentAnswerResult = computed(function getCurrentAnswerResult() {
   if (!props.answerResult || String(props.answerResult.questionId) !== String(props.question.id)) return null;
   return props.answerResult;
 });
 
-// 根据判题结果生成提示文字，避免在模板中写多层条件表达式。
+// 根据判题结果生成提示文字，避免在模板中写多层条件表达式
 const answerSummary = computed(function getAnswerSummary() {
   if (!currentAnswerResult.value) return "";
   if (currentAnswerResult.value.correct) {

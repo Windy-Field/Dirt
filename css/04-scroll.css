@@ -1,4 +1,4 @@
-/* ==================== 17. 数字手卷：只让手卷内部横向翻阅，整页仍纵向滚动 ==================== */
+/* 17. 数字手卷：只让手卷内部横向翻阅，整页仍纵向滚动 */
 .scroll-story {
   --handscroll-rail: 28px;
   position: relative;
@@ -155,7 +155,7 @@
 .seal-check span { font: 700 4rem var(--font-display); }
 .seal-check i { transform: rotate(37deg); }
 
-/* 数字手卷插画：用文字中的动作组织画面，亮暗主题只通过设计变量换肤。 */
+/* 数字手卷插画：用文字中的动作组织画面，亮暗主题只通过设计变量换肤 */
 .scroll-illustration {
   isolation: isolate;
   background:

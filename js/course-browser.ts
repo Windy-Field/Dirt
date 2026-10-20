@@ -1,7 +1,6 @@
 const NiyunCourseBrowser = (function registerCourseBrowser() {
     "use strict";
-    // 课程浏览器独立管理课时切换、课件横向阅读和进度条拖动。
-    // 这里使用 window 命名空间而不是 import/export，是为了让根目录 index.html 在 file:// 下也能直接打开。
+    // 通过 window 注册课程模块，支持双击网页预览
     return {
         create(dependencies: CourseDependencies) {
             const source1 = dependencies;
@@ -20,7 +19,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
             let requestedCourseId = "";
             let courseRenderRequest = 0;
             let courseSlideRequest = 0;
-            // 有可用地址才显示下载入口，避免出现点了没有反应的按钮。
+            // 有可用地址才显示下载入口，避免出现点了没有反应的按钮
             function configureCourseLink(link: HTMLAnchorElement, value: string, options?: {
                 downloadName?: string;
                 openInNewTab?: boolean;
@@ -53,7 +52,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     link.removeAttribute("rel");
                 }
             }
-            // 把配置中的教案和回顾视频接到页面上，资源地址集中在配置文件维护。
+            // 把配置中的教案和回顾视频接到页面上，资源地址集中在配置文件维护
             function configureCoursePackLinks() {
                 let valueResult1;
                 const value2 = mediaConfig;
@@ -129,7 +128,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 }
                 return Math.max(0, Number(valueResult5) || 0);
             }
-            // 记录每页在横向课卷中的位置，翻页时就能准确停在页首。
+            // 记录每页在横向课卷中的位置，翻页时就能准确停在页首
             function courseSlideAnchors(viewport?) {
                 if (viewport === undefined) {
                     viewport = (document.querySelector("#courseSlideViewport") as HTMLElement);
@@ -153,7 +152,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 valueResult7 = result11;
                 return valueResult7;
             }
-            // 桌面端让右侧课时列表与课件等高，手机端则交给内容自然撑开。
+            // 桌面端让右侧课时列表与课件等高，手机端则交给内容自然撑开
             function syncCourseLessonPanelHeight() {
                 const panel = (document.querySelector(".course-lesson-panel") as HTMLElement);
                 const content = (document.querySelector("#courseScroll") as HTMLElement);
@@ -174,7 +173,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     return imageReadyCache.get(image);
                 }
                 image.loading = "eager";
-                // 同一张图片只解码一次；失败后允许下次切换重试。
+                // 同一张图片只解码一次；失败后允许下次切换重试
                 const ready = image.decode().then(function markReady() {
                     image.classList.add("loaded");
                 }, function allowRetry() {
@@ -209,7 +208,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     }
                 }
             }
-            // 先准备要看的这一页，再预加载下一页，兼顾首次加载和连续翻页。
+            // 先准备要看的这一页，再预加载下一页，兼顾首次加载和连续翻页
             async function prepareCourseSlide(index: number) {
                 const panels = (Array.from((document.querySelector("#courseSlideTrack") as HTMLElement).querySelectorAll(".course-slide")) as HTMLElement[]);
                 let valueResult11;
@@ -236,7 +235,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     nextImage.loading = "eager";
                 }
             }
-            // 翻到指定页，并同步页码和按钮；请求编号保证快速操作时以最后一次为准。
+            // 翻到指定页，并同步页码和按钮；请求编号保证快速操作时以最后一次为准
             async function updateCourseSlideState(index: number, behavior?: ScrollBehavior) {
                 if (behavior === undefined) {
                     behavior = "smooth";
@@ -248,7 +247,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 const nextIndex = Math.max(0, Math.min(index, count - 1));
                 const requestId = ++courseSlideRequest;
                 await prepareCourseSlide(nextIndex);
-                // 用户快速切换课件时，旧课件的图片可能晚一步加载；只接受最后一次请求的结果。
+                // 用户快速切换课件时，旧课件的图片可能晚一步加载；只接受最后一次请求的结果
                 if (requestId !== courseSlideRequest || !activeCourse) {
                     return;
                 }
@@ -278,7 +277,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 (document.querySelector("#courseSlidePrev") as HTMLButtonElement).disabled = activeCourseSlideIndex === 0;
                 (document.querySelector("#courseSlideNext") as HTMLButtonElement).disabled = activeCourseSlideIndex === count - 1;
             }
-            // 生成本课的图片页面并缓存 HTML；远处的页面暂不急着下载。
+            // 生成本课的图片页面并缓存 HTML；远处的页面暂不急着下载
             function getCourseSlideMarkup(course: Course) {
                 const count = Number(course.slideCount) || 0;
                 const basePath = String(course.slideBasePath || "").replace(/\/$/, "");
@@ -307,7 +306,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 courseSlideMarkupCache.set(course.id, markup);
                 return markup;
             }
-            // 新课件首图准备好后再换掉旧内容，减少切换时的空白。
+            // 新课件首图准备好后再换掉旧内容，减少切换时的空白
             async function renderCourseSlides(course: Course) {
                 const track = (document.querySelector("#courseSlideTrack") as HTMLElement);
                 const viewport = (document.querySelector("#courseSlideViewport") as HTMLElement);
@@ -316,7 +315,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 }
                 const requestId = ++courseRenderRequest;
                 courseSlideRequest += 1;
-                // 保留每课的真实节点和已解码图片，回来时不用重建整套课件。
+                // 缓存每课的节点和图片，供再次切换时使用
                 const staging = getCourseSlides(course);
                 const firstImage = (staging.querySelector(".course-slide img") as HTMLImageElement);
                 await waitForSlideImage(firstImage);
@@ -349,7 +348,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     return viewport.scrollTo({ left: 0, behavior: "auto" });
                 });
             }
-            // 切换课时的统一入口：更新介绍、选中按钮、下载链接和课件。
+            // 切换课时的统一入口：更新介绍、选中按钮、下载链接和课件
             function selectCourse(id: string, options?: {
                 scrollToContent?: boolean;
             }) {
@@ -438,7 +437,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                     downloadName: valueResult39,
                     openInNewTab: isPdf,
                 });
-                // 保存准备课件的 Promise，调用方可以等待它，而不是误以为调用后立即加载完成。
+                // 返回课件准备任务，供调用方等待加载完成
                 const slidesReady = renderCourseSlides(course);
                 if (options.scrollToContent && window.matchMedia("(max-width: 47.5rem)").matches) {
                     window.requestAnimationFrame(function revealSelectedCourse() {
@@ -465,7 +464,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 }
                 return slidesReady;
             }
-            // 首次拿到课程列表后，生成课时按钮并默认打开第一课。
+            // 首次拿到课程列表后，生成课时按钮并默认打开第一课
             async function renderCourses(items: Course[]) {
                 courses = items;
                 let valueResult45;
@@ -508,13 +507,13 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 else {
                     valueResult53 = value54.id;
                 }
-                // 第一课准备完成后才结束初始化，让开屏能准确判断课件是否就绪。
+                // 第一课准备完成后才结束初始化，让开屏能准确判断课件是否就绪
                 await selectCourse(valueResult53);
                 syncCourseLessonPanelHeight();
-                // 首课显示后再准备其他课的首页，不阻塞开屏，也不下载整套远处课件。
+                // 首课显示后预加载其他课的首页
                 window.setTimeout(prepareCourseCovers, 0);
             }
-            // 将鼠标拖动、滚轮、键盘和进度条接到同一套课件翻页逻辑上。
+            // 将鼠标拖动、滚轮、键盘和进度条接到同一套课件翻页逻辑上
             function initCourseScroll() {
                 const viewport = (document.querySelector("#courseSlideViewport") as HTMLElement);
                 const progressTrack = (document.querySelector("#courseSlideProgressTrack") as HTMLElement);
@@ -525,7 +524,7 @@ const NiyunCourseBrowser = (function registerCourseBrowser() {
                 let dragging = false;
                 let dragStart = 0;
                 let scrollStart = 0;
-                // 用户也能手动拖动课卷，所以页码要根据实际滚动位置更新。
+                // 用户也能手动拖动课卷，所以页码要根据实际滚动位置更新
                 function syncCourseSlideFromScroll() {
                     const panels = (Array.from((document.querySelector("#courseSlideTrack") as HTMLElement).querySelectorAll(".course-slide")) as HTMLElement[]);
                     if (!panels.length) {

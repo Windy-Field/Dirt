@@ -12,9 +12,9 @@ interface AiImageData {
     else {
         valueResult1 = "";
     }
-    // 云端优先、本地兜底；真实 Key 始终只保存在对应后端。
-    // 地址为空时使用同源后端，支持通过 server.js 同时托管网页和 AI API。
-    // 直接双击 index.html 时 origin 为 null，不会误发起 file:// 请求。
+    // 依次尝试主后端和备用后端
+    // 地址为空时使用同源后端，支持通过 server.js 同时托管网页和 AI API
+    // 双击页面时使用本地 HTTP 服务
     const sameOriginBaseUrl = valueResult1;
     let valueResult3;
     if (window.location.protocol === "file:") {
@@ -75,15 +75,15 @@ interface AiImageData {
     valueResult5 = items3;
     const API_BASE_URLS = valueResult5;
     let activeBaseUrl = "";
-    // 保留最近一次状态的配置结论；网络超时时沿用它，但不会把超时误报成确定离线。
+    // 保存最近一次配置状态，超时后仍可用于提示
     let lastKnownStatus: AiStatus | null = null;
-    // connected: true 表示成功，false 表示失败，null 表示探测未取得结论。
-    // configured 只说明配置齐全，不能代替上游可用性判断。
+    // connected: true 表示成功，false 表示失败，null 表示探测未取得结论
+    // configured 表示后端配置是否齐全
     function notifyStatus(status: AiStatus): void {
         lastKnownStatus = status;
         window.dispatchEvent(new CustomEvent("ai-status-change", { detail: status }));
     }
-    // 浏览器不能直接把 File 对象放进 JSON，所以先转成后端可读取的 Data URL。
+    // 将图片转成 Data URL，随 JSON 发送给后端
     function fileToDataUrl(file: File): Promise<AiImageData> {
         return new Promise(function readImageAsDataUrl(resolve, reject) {
             const reader = new FileReader();
@@ -106,7 +106,7 @@ interface AiImageData {
         });
     }
     window.AiService = {
-        // 页面启动时调用状态接口，用来显示“AI助手已连接/未连接”。
+        // 页面启动时调用状态接口，用来显示“AI助手已连接/未连接”
         async getStatus(): Promise<AiStatus> {
             let latestStatus: AiStatus | null = null;
             let latestBaseUrl = "";
@@ -134,7 +134,7 @@ interface AiImageData {
                     else {
                         valueResult19 = value22.connected;
                     }
-                    // 兼容尚未返回 verified 字段的旧版后端；真正请求失败时，chat() 仍会显示具体错误。
+                    // 兼容旧版后端缺少 verified 字段的响应
                     if (valueResult19 && (status.verified === true || status.verified === undefined)) {
                         activeBaseUrl = baseUrl;
                         notifyStatus(status);
@@ -152,7 +152,7 @@ interface AiImageData {
                 else {
                     valueResult21 = latestBaseUrl;
                 }
-                // 已配置但探测失败的后端仍允许聊天尝试，真实请求成功后会立即刷新为在线。
+                // 保留已配置的后端作为聊天候选，成功后更新连接状态
                 activeBaseUrl = valueResult21;
                 const status = Object.assign({}, latestStatus, { checking: false });
                 notifyStatus(status);
@@ -177,7 +177,7 @@ interface AiImageData {
                     valueResult23 = value;
                 }
             }
-            // 状态请求超时只说明“暂时无法确认”，不能据此断言实际聊天不可用。
+            // 状态请求超时时显示待确认
             const unknownStatus = {
                 connected: null,
                 configured: valueResult23,
@@ -187,7 +187,7 @@ interface AiImageData {
             notifyStatus(unknownStatus);
             return unknownStatus;
         },
-        // 把文字、图片和会话编号统一交给后端；后端再决定调用文字模型还是视觉模型。
+        // 把文字、图片和会话编号统一交给后端；后端再决定调用文字模型还是视觉模型
         async chat(options28: AiRequest): Promise<AiReply> {
             const source29 = options28;
             const message = source29.message;
@@ -319,7 +319,7 @@ interface AiImageData {
                     valueResult45 = value;
                 }
             }
-            // 实际聊天已失败，不能继续显示为等待确认或响应较慢。
+            // 聊天请求失败后更新状态提示
             notifyStatus({
                 connected: false,
                 configured: valueResult45,

@@ -1,4 +1,4 @@
-// Business data shared by browser modules. These interfaces create no runtime code.
+// 浏览器模块共用的数据类型
 interface Site {
     id: number;
     city: string;

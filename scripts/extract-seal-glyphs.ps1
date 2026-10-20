@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Drawing
+﻿Add-Type -AssemblyName System.Drawing
 
 $fontPath = Join-Path $PSScriptRoot '..\assets\fonts\YiShanBeiZhuanTi.ttf'
 $fonts = [System.Drawing.Text.PrivateFontCollection]::new()
@@ -11,7 +11,7 @@ function Format-Number([float]$value) {
 }
 
 function Get-GlyphPath([string]$character, [float]$centerX, [float]$centerY) {
-  # Fit the font outline into one seal cell while preserving its aspect ratio.
+  # 按比例缩放字形，使其适合印面中的单字区域
   $path = [System.Drawing.Drawing2D.GraphicsPath]::new()
   $format = [System.Drawing.StringFormat]::GenericTypographic
   $format.FormatFlags = $format.FormatFlags -bor [System.Drawing.StringFormatFlags]::NoClip
@@ -29,7 +29,7 @@ function Get-GlyphPath([string]$character, [float]$centerX, [float]$centerY) {
   $commands = [System.Collections.Generic.List[string]]::new()
   $index = 0
   while ($index -lt $points.Length) {
-    # GDI+ stores the segment type in the low bits and closure in bit 7.
+    # 低三位表示线段类型，最高位表示路径闭合
     $kind = $types[$index] -band 7
     $closed = ($types[$index] -band 128) -ne 0
     if ($kind -eq 0) {

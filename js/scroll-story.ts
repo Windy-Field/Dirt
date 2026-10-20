@@ -41,7 +41,7 @@ const NiyunScrollStory = (function registerScrollStory() {
                                 image.className = "scroll-custom-image";
                                 image.alt = illustration.getAttribute("aria-label") || "数字手卷配图";
                                 image.draggable = false;
-                                // 手卷图片属于首个可见内容，开屏结束前必须完成加载或明确失败。
+                                // 手卷图片属于首个可见内容，开屏结束前必须完成加载或明确失败
                                 image.loading = "eager";
                                 image.decoding = "async";
                                 image.src = imagePath;
@@ -61,7 +61,7 @@ const NiyunScrollStory = (function registerScrollStory() {
                 let dragStart = 0;
                 let scrollStart = 0;
                 let chapterStops: number[] = [];
-                // 重新记录各幕的位置，窗口大小改变后翻页仍能准确停靠。
+                // 重新记录各幕的位置，窗口大小改变后翻页仍能准确停靠
                 function refreshChapterStops() {
                     const firstPanel = panels[0];
                     const lastPanel = panels[panels.length - 1];
@@ -86,7 +86,7 @@ const NiyunScrollStory = (function registerScrollStory() {
                     valueResult7 = result13;
                     chapterStops = valueResult7;
                 }
-                // 根据实际滚动位置同步章节和进度，不只依赖按钮点击。
+                // 根据滚动位置同步章节和进度
                 function updateStory() {
                     const max = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
                     const ratio = Math.min(1, viewport.scrollLeft / max);

@@ -1,5 +1,4 @@
-// 补充史料专题档案：只在浏览器中读取，不依赖后端或数据库。
-// 内容依据用户提供的《补充史料.docx》整理；争议性判断保留“可能”“两说并存”等限定语。
+// 依据《补充史料.docx》整理的专题档案，保留原文的争议说明
 window.SUPPLEMENTARY_SOURCES = Object.freeze({
     updatedAt: "2026-08-25",
     sourceDocument: "《补充史料》",

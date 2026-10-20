@@ -12,13 +12,13 @@
     <link rel="icon" href="./assets/branding/favicon.svg?v=seal-v2" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./assets/branding/apple-touch-icon.png?v=seal-v2" sizes="180x180">
     <title>泥云智探｜齐鲁封泥智慧人文平台</title>
-    <!-- 同源外部脚本可通过严格 CSP，并在 CSS 首次计算前恢复主题，避免刷新时闪出浅色开屏。 -->
+    <!-- 在样式加载前恢复主题 -->
     <script src="./.runtime/js/theme-bootstrap.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- 样式顺序属于层叠约定：变量、基础、栏目、专题，最后加载增强覆盖；不要按文件名随意重排。 -->
+    <!-- 按变量、基础、栏目、专题和覆盖样式的顺序加载 -->
     <link rel="stylesheet" href="./css/tokens.css">
     <link rel="stylesheet" href="./css/01-base-opening.css">
     <link rel="stylesheet" href="./css/02-content-layout.css">
@@ -29,9 +29,8 @@
   </head>
 
   <body>
-    <!-- 开馆加载层：古卷封泥解封与展开动画，纯矢量SVG与Canvas设计，真实呈现卷轴展开与封泥破裂脱落过程 -->
+    <!-- 卷轴开屏动画 -->
     <div class="opening-loader" id="openingLoader" role="status" aria-live="polite">
-      <!-- 背景氛围：典雅古卷水墨、金石暗纹、微尘与呼吸光晕 -->
       <div class="opening-loader-ambient" aria-hidden="true">
         <div class="ambient-glow"></div>
         <div class="opening-ambient-pattern"></div>
@@ -45,9 +44,8 @@
       </div>
 
       <div class="opening-loader-stage">
-        <!-- 卷轴与封泥视觉容器 -->
         <div class="scroll-wrapper">
-          <!-- 卷轴左轴杆（向左展开滑动） -->
+          <!-- 左轴杆 -->
           <div class="scroll-roller scroll-roller-left" id="scrollRollerLeft">
             <div class="roller-cap top"></div>
             <div class="roller-body"></div>
@@ -55,20 +53,18 @@
             <div class="roller-shadow"></div>
           </div>
 
-          <!-- 卷轴主体宣纸展开区域 -->
+          <!-- 卷轴正文 -->
           <div class="scroll-paper-container" id="scrollPaperContainer">
             <div class="scroll-paper">
               <div class="paper-border-top"></div>
               <div class="paper-border-bottom"></div>
 
-              <!-- 卷轴内部渐显的古代文献水墨内容 -->
               <div class="scroll-content" id="scrollContent">
                 <div class="scroll-title-group">
                   <span class="scroll-kicker">齐鲁金石 · 数字封缄</span>
                   <h1 class="scroll-main-title">泥云智探</h1>
                   <p class="scroll-sub-title">齐鲁封泥智慧人文平台</p>
                 </div>
-                <!-- 开屏 IP 复用首页透明人物图，仅作卷轴右侧装饰。 -->
                 <img class="opening-scroll-ip" src="./assets/branding/mascot.webp" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
                 <div class="scroll-seal-mark" aria-hidden="true">
                   <svg viewBox="0 0 60 60" width="44" height="44">
@@ -80,7 +76,7 @@
             </div>
           </div>
 
-          <!-- 卷轴右轴杆（向右展开滑动） -->
+          <!-- 右轴杆 -->
           <div class="scroll-roller scroll-roller-right" id="scrollRollerRight">
             <div class="roller-cap top"></div>
             <div class="roller-body"></div>
@@ -88,23 +84,22 @@
             <div class="roller-shadow"></div>
           </div>
 
-          <!-- 捆扎丝绳（初始捆绑，随后随展开崩解松脱） -->
+          <!-- 捆扎丝绳 -->
           <div class="scroll-cord" id="scrollCord" aria-hidden="true">
             <div class="cord-line left"></div>
             <div class="cord-line right"></div>
             <div class="cord-ribbon"></div>
           </div>
 
-          <!-- 纯矢量封泥艺术印章与裂纹脱落碎片层 -->
+          <!-- 封泥与碎片 -->
           <div class="seal-lock-wrapper">
-            <!-- 封泥裂纹与碎片动态绘制画布（精准粒子脱落） -->
+            <!-- 泥屑画布 -->
             <canvas id="sealParticlesCanvas" class="seal-particles-canvas" width="360" height="360"></canvas>
 
-            <!-- 封泥主体：古代泥块质感、紫泥/赤褐陶土光泽、封泥外框与篆印 -->
             <div class="clay-seal-entity" id="claySealEntity">
               <svg class="clay-seal-svg" viewBox="0 0 200 200" width="160" height="160">
                 <defs>
-                  <!-- 陶土封泥原生质感滤镜：凹凸起伏与阴影 -->
+                  <!-- 陶土纹理滤镜 -->
                   <radialGradient id="clayGrad" cx="38%" cy="32%" r="68%">
                     <stop offset="0%" stop-color="#ba5d45" />
                     <stop offset="45%" stop-color="#8c3323" />
@@ -118,20 +113,18 @@
                   </radialGradient>
                 </defs>
 
-                <!-- 泥块外缘不规则泥团边缘（按压溢泥效果） -->
+                <!-- 不规则泥边 -->
                 <path class="clay-base" d="M98,12 C138,10 178,28 186,68 C194,108 182,154 150,178 C118,202 72,192 40,172 C8,152 4,112 12,70 C20,28 58,14 98,12 Z" fill="url(#clayGrad)" />
                 <path class="clay-rim" d="M100,20 C134,18 168,34 174,68 C180,102 170,140 142,162 C114,184 74,176 46,158 C18,140 16,106 22,70 C28,34 66,22 100,20 Z" fill="none" stroke="#320c06" stroke-width="3" opacity="0.4" />
 
-                <!-- 中间印台下凹区 -->
                 <rect x="46" y="46" width="108" height="108" rx="14" fill="url(#indentGrad)" stroke="#2b0a05" stroke-width="4" />
-                <!-- 汉白文/朱文边栏内框 -->
                 <rect x="54" y="54" width="92" height="92" rx="8" fill="none" stroke="#b3513b" stroke-width="2.5" opacity="0.7" />
 
-                <!-- 篆体印文：右列“泥云”，左列“智探”，遵循从右到左、从上到下的阅读顺序。 -->
+                <!-- 印文右列“泥云”，左列“智探” -->
                 <g class="seal-inscription" role="img" aria-label="泥云智探">
                 </g>
 
-                <!-- SVG 预制核心深层裂纹（随进度逐渐加深延伸） -->
+                <!-- 随进度延伸的裂纹 -->
                 <g class="seal-cracks-group" id="sealCracksSvg" opacity="0">
                   <path class="crack-path crack-1" d="M100,20 L96,55 L82,85 L65,110 L40,140 L20,160" fill="none" stroke="#120402" stroke-width="2.8" stroke-linecap="round" />
                   <path class="crack-highlight crack-1-hi" d="M101,20 L97,55 L83,85 L66,110 L41,140 L21,160" fill="none" stroke="#fbd9b3" stroke-width="1" opacity="0.8" />
@@ -144,7 +137,7 @@
                 </g>
               </svg>
 
-              <!-- 封泥四块大碎块分裂容器（在最后剧烈破裂时散开飞出） -->
+              <!-- 四块碎片的飞散层 -->
               <div class="seal-fragment frag-nw" id="fragNW"></div>
               <div class="seal-fragment frag-ne" id="fragNE"></div>
               <div class="seal-fragment frag-sw" id="fragSW"></div>
@@ -153,7 +146,6 @@
           </div>
         </div>
 
-        <!-- 底部状态指示与金石印蜕进度条 -->
         <div class="opening-loader-info">
           <div class="opening-ceremony-status">
             <span class="status-seal-glyph">封泥解缄</span>
@@ -175,7 +167,7 @@
       </div>
     </div>
 
-    <!-- 顶部阅读滑条：显示阅读进度，也可点击、拖动或用键盘改变页面位置。 -->
+    <!-- 可点击、拖动和用键盘操作的阅读进度条 -->
     <div class="page-scroll-track" id="pageScrollTrack" role="slider" tabindex="0" aria-label="页面阅读位置" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="页面顶部">
       <div class="page-scroll-bar" id="pageProgressBar">
         <span class="page-scroll-knot" aria-hidden="true"></span>
@@ -183,7 +175,7 @@
     </div>
     <canvas id="ambientCanvas" aria-hidden="true"></canvas>
 
-    <!-- 顶部导航：固定在页面顶部，链接会跳到对应的 section。 -->
+    <!-- 顶部导航 -->
     <header class="site-header">
       <div class="brand">
         <span class="brand-seal" aria-hidden="true"><img class="brand-logo-image" alt="" loading="lazy" hidden><span class="brand-logo-fallback">泥</span></span>
@@ -212,7 +204,7 @@
     </header>
 
     <main>
-      <!-- 首屏：项目名称、简介、数据概览和代表性封泥图片。 -->
+      <!-- 首页 -->
       <section class="hero" id="home" aria-labelledby="heroTitle">
         <div class="hero-copy">
           <h1 id="heroTitle" class="seal-title" aria-label="泥云智探"><span aria-hidden="true">泥</span><span aria-hidden="true">云</span><span aria-hidden="true">智</span><span aria-hidden="true">探</span></h1>
@@ -228,34 +220,31 @@
           </dl>
         </div>
         <div class="hero-object museum-object" aria-label="封泥实物主题视觉" id="heroVisualArea">
-          <!-- 装饰层：金石篆刻同心罗盘与汉风天象盘 -->
+          <!-- 罗盘 -->
           <div class="hero-astronomy-compass" aria-hidden="true">
             <div class="compass-ring compass-outer-ring">
               <svg class="compass-svg" viewBox="0 0 500 500">
                 <defs>
-                  <!-- 闭合完整圆环路径（从顶部12点钟方向开始顺时针绘制整整一圈） -->
                   <path id="textCircleOuter" d="M 250, 35 A 215,215 0 1,1 249.9, 35 Z" />
                   <path id="textCircleInner" d="M 250, 90 A 160,160 0 1,1 249.9, 90 Z" />
                 </defs>
-                <!-- 汉风同心刻度线 -->
                 <circle cx="250" cy="250" r="240" class="compass-circle-line dash-1" />
                 <circle cx="250" cy="250" r="215" class="compass-circle-line" />
                 <circle cx="250" cy="250" r="185" class="compass-circle-line dash-2" />
                 <circle cx="250" cy="250" r="160" class="compass-circle-line" />
                 <circle cx="250" cy="250" r="130" class="compass-circle-line dash-3" />
-                <!-- 外圈齐鲁地名规范简体金石字（使用 textLength 和 lengthAdjust 均分铺满360度整圈） -->
+                <!-- 外圈地名沿圆环均匀分布 -->
                 <text class="compass-archaic-text outer-text">
                   <textPath href="#textCircleOuter" startOffset="0%" textLength="1348" lengthAdjust="spacing">
                     临淄 · 齐郡 · 琅琊 · 东莱 · 千乘 · 济南 · 泰山 · 城阳 · 胶东 · 高密 · 淄川 · 北海 · 薛郡 · 东海 · 平原 · 济阴 · 鲁国 · 胶西 ·
                   </textPath>
                 </text>
-                <!-- 内圈经典官署职官规范简体字（均分铺满360度整圈） -->
+                <!-- 内圈官署名 -->
                 <text class="compass-archaic-text inner-text">
                   <textPath href="#textCircleInner" startOffset="0%" textLength="1002" lengthAdjust="spacing">
                     守印 · 郡守 · 丞相 · 市丞 · 司马 · 左尉 · 右尉 · 候官 · 廷尉 · 典乐 · 司空 · 邑丞 · 府丞 · 郎丞 · 厩丞 ·
                   </textPath>
                 </text>
-                <!-- 八卦/四方金石准心刻度 -->
                 <g class="compass-crosshairs">
                   <line x1="250" y1="10" x2="250" y2="490" />
                   <line x1="10" y1="250" x2="490" y2="250" />
@@ -267,13 +256,10 @@
             <div class="compass-ring compass-halo-glow"></div>
           </div>
 
-          <!-- 主体 IP 形象 -->
           <figure class="hero-relic hero-relic-main hero-relic-soft" id="heroMascotFigure" data-parallax="10">
-            <!-- 角色悬停温润印光 -->
             <div class="mascot-aura" aria-hidden="true"></div>
             <img src="./assets/branding/mascot.webp" alt="印小灵角色形象" fetchpriority="high" decoding="async">
             <figcaption>印小灵 · 齐鲁封泥导览</figcaption>
-            <!-- 互动问候气泡 -->
             <div class="hero-mascot-speech" id="heroMascotSpeech" aria-hidden="true">
               <span>你好，我是印小灵。我们一起看看两千年前的封泥吧。</span>
             </div>
@@ -283,7 +269,7 @@
         <a class="scroll-cue" href="#knowledge"><span>向下探索</span><i aria-hidden="true"></i></a>
       </section>
 
-      <!-- 认识封泥：包含可横向翻阅的数字手卷和封泥知识说明。 -->
+      <!-- 认识封泥 -->
       <section class="knowledge section-shell exhibit-section" id="knowledge" data-reveal>
         <div class="section-heading split-heading">
           <div><p class="eyebrow">认识封泥</p><h2>封泥为什么被称为“简牍之锁”？</h2></div>
@@ -352,7 +338,7 @@
         </div>
       </section>
 
-      <!-- 封泥故事：把宫廷日常、学术重光、地方制度和经济运输分开讲。 -->
+      <!-- 封泥故事 -->
       <section class="stories section-shell exhibit-section" id="stories" data-reveal>
         <div class="section-heading split-heading">
           <div><p class="eyebrow">封泥故事</p><h2>四个故事，看看封泥留下了什么</h2></div>
@@ -372,7 +358,7 @@
         </div>
       </section>
 
-      <!-- 藏品展示：collectionGrid 的卡片由 js/app.js 根据 mock-data.js 动态生成。 -->
+      <!-- 藏品卡片由 app.ts 渲染 -->
       <section class="collection section-shell exhibit-section" id="collection" data-reveal>
         <div class="section-heading split-heading">
           <div><p class="eyebrow">齐鲁封泥图鉴</p><h2>通过几方封泥，了解齐鲁的官制与地理</h2></div>
@@ -381,7 +367,7 @@
         <div class="collection-grid" id="collectionGrid" aria-live="polite"></div>
       </section>
 
-      <!-- 补充史料：由 supplementary-sources.js 在浏览器端渲染，不访问后端。 -->
+      <!-- 区县图录与补充史料 -->
       <section class="map-section exhibit-section" id="map" data-reveal>
         <div class="section-shell map-shell">
           <div class="section-heading map-heading"><div><p class="eyebrow">调研足迹</p><h2>从封泥线索看齐鲁古郡国的分布</h2></div><p>我们整理了 45 个现代县区里的封泥资料，用来对照汉代的行政地理。</p></div>
@@ -451,13 +437,13 @@
         </div>
       </section>
 
-      <!-- 支教课程资源：左侧统一展示课程内容，右侧切换三课时。 -->
+      <!-- 课程资源 -->
       <section class="course-section section-shell exhibit-section" id="courses" data-reveal>
         <div class="section-heading split-heading"><div><p class="eyebrow">支教课程资源</p><h2>齐鲁封泥全课程</h2></div><p class="heading-note">封泥怎么用？美在哪里？怎么画一枚？</p></div>
         <div class="course-browser">
           <div class="course-browser-main">
             <article class="course-recap-feature">
-              <!-- 用户点击后再加载视频，首屏加载时优先把带宽留给图片。 -->
+              <!-- 用户点击后再加载视频，首屏加载时优先把带宽留给图片 -->
               <div class="course-recap-media"><video id="courseRecapVideo" controls playsinline preload="metadata" poster="./assets/courses/course-recap-poster.jpg" aria-label="支教活动总结视频" aria-describedby="courseRecapError"></video></div>
               <p id="courseRecapError" role="status" hidden>视频暂时无法加载，请稍后刷新重试。</p>
               <div class="course-recap-copy"><span>支教活动回顾</span><h3>封泥课程走进支教课堂</h3><p>视频记录了封泥课程走进支教课堂的过程。</p></div>
@@ -495,7 +481,7 @@
         </div>
       </section>
 
-      <!-- 封泥牌具：模型由 Three.js 生成，表面贴图路径统一写在 data/3d-products.js。 -->
+      <!-- 牌具模型由 Three.js 生成，贴图配置见 data/media-config.ts -->
       <section class="creative-section product-3d-section exhibit-section" id="creative" data-reveal>
         <div class="section-shell product-3d-heading">
           <div class="section-heading map-heading"><div><p class="eyebrow">封泥牌具</p><h2>把封泥印文带进日常设计</h2></div><p>你可以转动模型，看看两千年前的官印是怎样变成今天的牌面的。</p></div>
@@ -530,7 +516,7 @@
         </div>
       </section>
 
-      <!-- AI 助手：前端只收集问题和图片，真正的模型调用由 server.js/云端 FC 完成。 -->
+      <!-- AI 问答，模型请求由服务端处理 -->
       <section class="ai-section section-shell exhibit-section" id="ai-guide" data-reveal>
           <div class="ai-intro"><p class="eyebrow">AI吉祥物</p><h2>看不懂印文？<br>让“印小灵”陪你认一认</h2><p>印小灵能看图，也能认字：结合封泥资料和图像识别，陪你观察印面、辨认文字，再讲一讲官职与历史背景。它给出的释读只是研学线索，遇到残缺或有争议的文字，还需要专业人员复核。</p><ul><li>上传图片，看看印面和残损细节</li><li>参照金石著录，比较小篆与缪篆的候选字</li><li>问问两汉职官、齐鲁古城和封缄工艺</li></ul></div>
         <div class="ai-console">
@@ -543,13 +529,13 @@
         </div>
       </section>
 
-      <!-- 趣味问答由独立 Vue 应用管理；数据接口仍复用 ApiService。 -->
+      <!-- Vue 问答应用挂载点 -->
       <section class="quiz-section exhibit-section" id="quiz" data-reveal aria-labelledby="quizTitle">
         <div class="section-shell" id="quizApp"><p class="quiz-loading">正在准备趣味问答……</p></div>
       </section>
     </main>
 
-    <!-- 页脚：项目名称、常用栏目入口和版权说明。 -->
+    <!-- 页脚 -->
     <footer class="site-footer">
       <div class="footer-brand">
         <span class="brand-seal" aria-hidden="true"><img class="brand-logo-image" alt="" hidden><span class="brand-logo-fallback">泥</span></span>
@@ -576,7 +562,7 @@
       </div>
     </footer>
 
-    <!-- 全站搜索弹窗：搜索行为在 js/search-dialog.js 中绑定。 -->
+    <!-- 搜索弹窗 -->
     <dialog class="search-dialog" id="searchDialog">
       <div class="search-box">
         <button class="dialog-close" id="closeSearch" type="button" aria-label="关闭搜索">×</button>
@@ -594,7 +580,7 @@
       </div>
     </dialog>
 
-    <!-- 设置：修改后即时生效，并由 js/display-settings.js 保存到浏览器本地。 -->
+    <!-- 显示设置 -->
     <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle">
       <div class="settings-panel">
         <header class="settings-head">
@@ -687,7 +673,7 @@
       </div>
     </dialog>
 
-    <!-- 完整区县图录弹窗：主页面只展示前三条，全部资料在这里筛选。 -->
+    <!-- 完整图录 -->
     <dialog class="source-dialog" id="sourceDialog" aria-labelledby="sourceDialogTitle">
       <div class="source-dialog-panel">
         <button class="source-dialog-close" id="closeSourceIndex" type="button" aria-label="关闭区县图录">×</button>
@@ -725,12 +711,9 @@
     </aside>
 
     <!--
-      脚本加载顺序很重要：先准备数据和配置，再加载服务，最后运行页面交互。
-      config.js 必须放在 ai-service.js 前面，否则 AI 服务不知道云端接口地址。
+      先加载数据和配置，再注册功能模块，最后由 app.js 初始化页面
     -->
-    <!-- 开幕封泥字形已转为 SVG 路径；在 SVG 解析完成后由外部脚本绘制，以兼容严格 CSP。 -->
     <script src="./js/seal-glyph-paths.js"></script>
-    <!-- 常用媒体替换入口必须最先加载，课程和 Three.js 都从这里读取安全路径。 -->
     <script src="./.runtime/data/media-config.js"></script>
     <script src="./.runtime/js/offline-texture-loader.js"></script>
     <script src="./.runtime/data/ai-pet-config.js"></script>
@@ -744,9 +727,7 @@
     <script src="./data/shandong-rivers.js"></script>
     <script src="./data/shandong-lakes.js"></script>
     <script src="./data/shandong-lakes-reference.js"></script>
-    <!-- 手工补绘与公开水系数据分开维护，均只用于河槽示意。 -->
     <script src="./data/shandong-rivers-reference.js"></script>
-    <!-- 先读取公开配置，再由统计加载器判断是否启用 Umami；Website ID 留空时不会发送请求。 -->
     <script src="./.runtime/js/config.js"></script>
     <script src="./.runtime/js/analytics.js"></script>
     <script src="./.runtime/js/api.js"></script>

@@ -1,6 +1,6 @@
 (function restoreInitialTheme() {
     "use strict";
-    // 这段脚本必须在主题样式表之前同步执行，确保浏览器第一次绘制就是保存的主题。
+    // 这段脚本必须在主题样式表之前同步执行，确保浏览器第一次绘制就是保存的主题
     const schedule = Object.freeze({ lightStartHour: 6, lightEndHour: 18 });
     const storageKeys = ["niyun-display-settings", "nimeng-display-settings", "niyun-settings"];
     const supportedModes = new Set(["light", "dark", "auto"]);

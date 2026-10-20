@@ -8,8 +8,8 @@ else {
 }
 /*
  * 3D 牌具贴图配置
- * Photoshop 设计完成后，将导出的 PNG/WebP 放到下方路径即可替换占位图。
- * 扑克牌建议 750x1050px，麻将正面建议 768x1024px，均使用 sRGB。
+ * Photoshop 设计完成后，将导出的 PNG/WebP 放到下方路径即可替换占位图
+ * 扑克牌建议 750x1050px，麻将正面建议 768x1024px，均使用 sRGB
  */
 const mediaTextures = valueResultdproducts1 || {};
 const texturePath = function (name, fallback) {

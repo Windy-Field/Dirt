@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const sharp = require(process.env.SHARP_MODULE || 'sharp');
 
-// 检查真实浏览器中的地形渲染、旋转、像素内容和移动端双指缩放。
+// 检查真实浏览器中的地形渲染、旋转、像素内容和移动端双指缩放
 async function verifyTerrainBrowser() {
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
   try {

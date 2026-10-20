@@ -8,7 +8,7 @@ if (!process.env.DB_HOST || !process.env.DB_NAME || !process.env.DB_USER || !pro
   throw new Error("请先配置 DB_HOST、DB_NAME、DB_USER 和 DB_PASSWORD");
 }
 
-// 浏览器数据使用 window 保存内容，这里在独立上下文中读取，供导入使用。
+// 浏览器数据使用 window 保存内容，这里在独立上下文中读取，供导入使用
 function loadBrowserData(fileNames) {
   const context = { window: {} };
   vm.createContext(context);
@@ -21,7 +21,7 @@ function loadBrowserData(fileNames) {
   return context.window;
 }
 
-// 按表导入网站初始数据；这是维护脚本，不会在访客打开网页时运行。
+// 按表导入初始数据，使用事务统一提交
 async function main() {
   const data = loadBrowserData(["data/ppt-knowledge.js", "data/mock-data.js"]);
   const pool = await mysql.createPool({
@@ -34,7 +34,7 @@ async function main() {
   });
   const connection = await pool.getConnection();
   try {
-    // 整批导入共用事务；任一表失败时回滚，避免展示数据只更新一部分。
+    // 整批导入共用事务；任一表失败时回滚，避免展示数据只更新一部分
     await connection.beginTransaction();
     const sites = data.SEAL_KNOWLEDGE.sites;
     for (let siteIndex = 0; siteIndex < sites.length; siteIndex += 1) {

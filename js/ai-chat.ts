@@ -43,7 +43,7 @@ const NiyunAiChat = (function registerAiChatController() {
                 valueResult1 = result5;
                 (document.querySelector("#uploadThumbnails") as HTMLElement).innerHTML = valueResult1.join("");
             }
-            // 清空预览时释放临时图片地址，避免多次上传后一直占用内存。
+            // 清空预览时释放临时图片地址，避免多次上传后一直占用内存
             function clearSelectedImages() {
                 const items7 = selectedImages;
                 for (let index9 = 0; index9 < items7.length; index9++) {
@@ -56,7 +56,7 @@ const NiyunAiChat = (function registerAiChatController() {
                 (document.querySelector("#aiImage") as HTMLInputElement).value = "";
                 renderSelectedImages();
             }
-            // 先显示用户消息和等待提示，再请求回答；成功或失败都要恢复发送按钮。
+            // 先显示用户消息和等待提示，再请求回答；成功或失败都要恢复发送按钮
             async function send(message: string) {
                 let valueResult9;
                 const items12 = selectedImages;
@@ -121,7 +121,7 @@ const NiyunAiChat = (function registerAiChatController() {
                 }
                 const ready = status.connected === true;
                 const unavailable = status.configured === false || status.connected === false;
-                // 仅未知状态使用检查样式；明确失败优先于 checking 标记。
+                // 仅未知状态使用检查样式；明确失败优先于 checking 标记
                 const checking = !ready && !unavailable;
                 element.classList.toggle("disconnected", unavailable);
                 element.classList.toggle("checking", checking);
@@ -141,7 +141,7 @@ const NiyunAiChat = (function registerAiChatController() {
                 }
                 element.innerHTML = ("<i></i> " + (label));
             }
-            // 集中绑定发送、快捷提问、上传和清空事件，页面初始化时调用一次。
+            // 集中绑定发送、快捷提问、上传和清空事件，页面初始化时调用一次
             function init() {
                 window.addEventListener("ai-status-change", function handleAiStatusChange(event) {
                     return renderStatus(event.detail || { connected: false });

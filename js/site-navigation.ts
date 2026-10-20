@@ -7,7 +7,7 @@ const NiyunSiteNavigation = (function registerSiteNavigation() {
             const findElements = source2.findElements;
             const prefersReducedMotion = source2.prefersReducedMotion;
             const interfaceConfig = source2.interfaceConfig;
-            // 导航模块只改变滚动位置和 active 状态，不负责渲染栏目内容。
+            // 初始化栏目导航与选中状态
             function setMenuOpen(open: boolean) {
                 const mainNav = (document.querySelector("#mainNav") as HTMLElement);
                 const menuToggle = ((document.querySelector("#menuToggle") as HTMLElement) as HTMLButtonElement);
@@ -47,7 +47,7 @@ const NiyunSiteNavigation = (function registerSiteNavigation() {
                     valueResult5 = value11.call(value10, "aria-label", valueResult7);
                 }
             }
-            // 沿父容器累加位置，得到元素在整张网页中的实际高度。
+            // 沿父容器累加位置，得到元素在整张网页中的实际高度
             function getLayoutTop(element: HTMLElement) {
                 let top = 0;
                 for (let current = element; current; current = current.offsetParent as HTMLElement) {
@@ -55,7 +55,7 @@ const NiyunSiteNavigation = (function registerSiteNavigation() {
                 }
                 return top;
             }
-            // 跳转时给固定导航栏留出空间，再选中相应地图点位。
+            // 跳转时给固定导航栏留出空间，再选中相应地图点位
             function navigateToMapIndex(siteId: number | string) {
                 const mapToolbar = (document.querySelector("#map .map-toolbar") as HTMLElement);
                 if (!mapToolbar) {
@@ -222,7 +222,7 @@ const NiyunSiteNavigation = (function registerSiteNavigation() {
                             const section = entry.target;
                             if (entry.isIntersecting) {
                                 section.classList.add("is-visible");
-                                // 展示过的栏目保持可见，来回滚动时不重复播放整段入场动画。
+                                // 保持已展示栏目可见，入场动画播放一次
                                 reveal.unobserve(section);
                                 undefined;
                             }
@@ -231,7 +231,7 @@ const NiyunSiteNavigation = (function registerSiteNavigation() {
                         }
                     }
                 }, 
-                // 提前 200px 开始入场，让快速下翻时内容尽量在进入视口前显现。
+                // 提前 200px 开始入场，让快速下翻时内容尽量在进入视口前显现
                 { rootMargin: "200px 0px", threshold: 0.01 });
                 const items54 = (Array.from(document.querySelectorAll("[data-reveal]")) as HTMLElement[]);
                 for (let index56 = 0; index56 < items54.length; index56++) {

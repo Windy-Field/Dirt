@@ -246,7 +246,7 @@
     function saveSettings() {
         window.localStorage.setItem(storageKey, JSON.stringify(settings));
     }
-    // 导航栏和设置面板都能控制音乐，要一起更新，避免两处显示不同状态。
+    // 导航栏和设置面板都能控制音乐，要一起更新，避免两处显示不同状态
     function syncControls() {
         if (settingsInput) {
             settingsInput.checked = settings.enabled;
@@ -327,7 +327,7 @@
             carouselButton.dataset.enabled = String(carouselEnabled);
         }
     }
-    // 逐步调整音量，让播放和暂停不突然；新渐变开始时会接管旧渐变。
+    // 渐变调整音量，新渐变接管旧任务
     function fadeTo(target, duration?) {
         if (duration === undefined) {
             duration = 320;
@@ -346,7 +346,7 @@
             }
         }, 30);
     }
-    // 浏览器可能禁止未经点击就播放声音，因此要等待播放结果并处理失败。
+    // 浏览器可能禁止未经点击就播放声音，因此要等待播放结果并处理失败
     async function playMusic() {
         if (!getSelectedTrack() || !settings.enabled || activeVideos > 0) {
             return false;
@@ -360,14 +360,14 @@
             return true;
         }
         catch (_) {
-            // 浏览器可能暂时拦截自动播放，保留用户的开启偏好，等待首次交互后重试。
+            // 浏览器可能暂时拦截自动播放，保留用户的开启偏好，等待首次交互后重试
             syncControls();
             return false;
         }
     }
     function pauseMusic() {
         const requestId = ++pauseRequestId;
-        // 先暂停声音再归零音量；延迟同步只在没有新播放请求时生效。
+        // 先暂停声音再归零音量；延迟同步只在没有新播放请求时生效
         audio.pause();
         fadeTo(0, 180);
         window.setTimeout(function syncCompletedPause() {
@@ -387,7 +387,7 @@
         syncControls();
         return playMusic();
     }
-    // 视频开始时让背景音乐让位，避免两路声音同时播放。
+    // 视频开始时让背景音乐让位，避免两路声音同时播放
     function handleVideoPlay(event) {
         if (event.target === audio) {
             return;
@@ -400,7 +400,7 @@
         pauseMusic();
         syncControls();
     }
-    // 视频结束或暂停后，再根据用户原来的设置决定是否恢复背景音乐。
+    // 视频结束或暂停后，再根据用户原来的设置决定是否恢复背景音乐
     function handleVideoStop(event) {
         if (!(event.target instanceof HTMLVideoElement)) {
             return;
@@ -483,7 +483,7 @@
     document.addEventListener("ended", handleVideoStop, true);
     document.addEventListener("emptied", handleVideoStop, true);
     audio.addEventListener("ended", playNextTrack);
-    // 用户已开启音乐时尝试自动播放；若浏览器拦截，则在用户第一次操作页面时重试。
+    // 用户已开启音乐时尝试自动播放；若浏览器拦截，则在用户第一次操作页面时重试
     function resumeAfterUserGesture(event) {
         let valueResult69;
         const value70 = (event.target as HTMLElement).closest;

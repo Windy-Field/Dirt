@@ -1,6 +1,6 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
-# Derive every path from this script so the command works from any directory.
+# 以脚本位置确定项目路径，支持从其他目录启动
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $buildRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot "dist"))
 $packageRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot "deploy/fc"))
@@ -8,6 +8,7 @@ $packageBuildRoot = [IO.Path]::GetFullPath((Join-Path $packageRoot "dist"))
 $releaseRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot "releases"))
 $archivePath = [IO.Path]::GetFullPath((Join-Path $releaseRoot "niyun-zhitan-fc.zip"))
 
+# 检查 Path 是否位于 Parent 内，越界时按 Label 提示错误
 function Assert-ChildPath([string]$Path, [string]$Parent, [string]$Label) {
   $prefix = $Parent.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
   if (!$Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
@@ -22,13 +23,13 @@ Assert-ChildPath $archivePath $releaseRoot "FC archive"
 
 Push-Location $projectRoot
 try {
-  # Validate source before replacing the last usable deployment package.
+  # 检查并构建源码，成功后再更新部署文件
   npm run check
   if ($LASTEXITCODE -ne 0) { throw "npm run check failed." }
   npm run build
   if ($LASTEXITCODE -ne 0) { throw "npm run build failed." }
 
-  # Start from an empty dist so deleted assets cannot linger in the FC package.
+  # 清空部署目录中的旧页面，再复制新构建结果
   if (Test-Path -LiteralPath $packageBuildRoot) {
     Remove-Item -LiteralPath $packageBuildRoot -Recurse -Force
   }
@@ -42,14 +43,14 @@ try {
   }
   Copy-Item -LiteralPath (Join-Path $projectRoot "server") -Destination $packageServerRoot -Recurse -Force
 
-  # FC custom runtimes never run npm install, so production deps must ship inside the archive.
+  # 将运行依赖随部署包上传
   $packageNodeModules = Join-Path $packageRoot "node_modules"
   if (Test-Path -LiteralPath $packageNodeModules) {
     Remove-Item -LiteralPath $packageNodeModules -Recurse -Force
   }
   Push-Location $packageRoot
   try {
-    # npm ci installs exactly what package-lock.json pins, so the archive is reproducible.
+    # 按锁文件安装运行依赖
     npm ci --omit=dev --no-audit --no-fund
     if ($LASTEXITCODE -ne 0) { throw "npm ci in deploy/fc failed." }
   } finally {
@@ -58,9 +59,7 @@ try {
   Assert-ChildPath $packageNodeModules $packageRoot "FC node_modules"
 
   New-Item -ItemType Directory -Path $releaseRoot -Force | Out-Null
-  # Package only runtime entries. Local installs or notes under deploy/fc must never leak into a release.
-  # Windows PowerShell 5.1 Compress-Archive writes backslash entry names, which breaks Linux unzip on FC.
-  # Use ZipArchive directly so every entry name uses forward slashes.
+  # 使用正斜杠写入压缩包路径，兼容 FC 的 Linux 环境
   Add-Type -AssemblyName System.IO.Compression
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   if (Test-Path -LiteralPath $archivePath) {
@@ -91,7 +90,7 @@ try {
     $archive.Dispose()
   }
 
-  # Inspect the archive itself for required entries and accidental private or development files.
+  # 检查运行文件是否齐全，并排除密钥和开发资料
   $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
   try {
     $names = $archive.Entries.FullName
@@ -101,7 +100,6 @@ try {
       "dist/assets/courses/course-recap.mp4", "dist/assets/courses/course-recap-poster.jpg"
     )
     $missing = $required | Where-Object { $names -notcontains $_ }
-    # node_modules is now a required runtime entry, so only its accidental development root counts.
     $unexpected = $names | Where-Object { $_ -match '(^|/)(\.env($|\.)|\.git/|docs/)' }
     if ($missing.Count) { throw "FC archive is missing: $($missing -join ', ')" }
     if ($unexpected.Count) { throw "FC archive contains unexpected files: $($unexpected -join ', ')" }

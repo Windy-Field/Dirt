@@ -1,13 +1,9 @@
 /*
- * 全站设计变量（Design Tokens）
- * 修改这里可以统一调整颜色、字体、间距、动画速度等基础风格。
- * 具体板块的排版由 css/01-base-opening.css 到 css/06-enhancements.css 按顺序管理。
+ * 全站颜色、字体、尺寸和动效参数
  */
 :root {
   /*
-   * ==================== 常用视觉参数快速调整区 ====================
-   * 后续改视觉时优先修改本区，不必在分拆后的板块样式文件中逐行寻找数字。
-   * 色彩和字体的详细变量紧接在本区下方。
+   * 布局与动效
    */
 
   /* 页面尺寸：正文最大宽度、正文占视口宽度（88vw 约等于两侧各留 6vw）、导航高度 */
@@ -15,16 +11,16 @@
   --layout-content-width: 88vw;
   --layout-header-height: 4.75rem;
   --layout-header-height-mobile: 4.125rem;
-  /* 导航在该宽度以下折叠；数值包含浏览器放大后的文字回流空间。 */
+  /* 导航在该宽度以下折叠；数值包含浏览器放大后的文字回流空间 */
   --layout-nav-menu-top: var(--layout-header-height);
   --layout-nav-menu-top-mobile: var(--layout-header-height-mobile);
 
-  /* 印小灵宠物：控制图片区域、对话面板和语录气泡位置。 */
-  /* 容器尺寸等于图片画布尺寸，便于图片完整拖到视口四边。 */
+  /* 印小灵宠物：控制图片区域、对话面板和语录气泡位置 */
+  /* 容器尺寸等于图片画布尺寸，便于图片完整拖到视口四边 */
   --layout-ai-pet-width: 15rem;
   --layout-ai-pet-height: 11.25rem;
   --layout-ai-pet-panel-bottom: 9rem;
-  /* 语录气泡中心相对宠物图片左上角的距离。值越大，气泡越向右或向下。 */
+  /* 语录气泡中心相对宠物图片左上角的距离。值越大，气泡越向右或向下 */
   --layout-ai-pet-greeting-offset-x: 5.25rem;
   --layout-ai-pet-greeting-offset-y: 1.2rem;
   --layout-ai-pet-width-mobile: 9rem;
@@ -33,7 +29,7 @@
   --layout-ai-pet-greeting-offset-x-mobile: 4.8rem;
   --layout-ai-pet-greeting-offset-y-mobile: 0.95rem;
 
-  /* 导航文字与时钟字号：单位 rem，分别控制栏目链接和设置图标左侧时间。 */
+  /* 导航文字与时钟字号：单位 rem，分别控制栏目链接和设置图标左侧时间 */
   --text-nav: clamp(.84rem, .82vw, .98rem);
   --text-header-clock: .78rem;
 
@@ -42,12 +38,12 @@
   --layout-map-height-mobile: 25.625rem;
   --layout-site-panel-height-mobile: 34rem;
 
-  /* 封泥牌具展厅尺寸：桌面场景高度、手机场景高度和右侧展签宽度。 */
+  /* 封泥牌具展厅尺寸：桌面场景高度、手机场景高度和右侧展签宽度 */
   --layout-product-3d-height: 42rem;
   --layout-product-3d-height-mobile: 31rem;
   --layout-product-3d-caption-width: 22rem;
 
-  /* 开屏卷轴 IP：中心高度与主标题“泥”字对齐；百分比相对卷轴正文区域。 */
+  /* 开屏卷轴 IP：中心高度与主标题“泥”字对齐；百分比相对卷轴正文区域 */
   --layout-opening-ip-height: 13.5rem;
   --layout-opening-ip-right: 1.4rem;
   --layout-opening-ip-center-y: 50%;
@@ -56,7 +52,7 @@
   --layout-opening-ip-center-y-mobile: 50%;
   --layout-opening-seal-right: 18rem;
 
-  /* 首屏罗盘动画：修改方向或周期时只调整这里。方向可填 normal 或 reverse。 */
+  /* 首屏罗盘动画：修改方向或周期时只调整这里。方向可填 normal 或 reverse */
   --effect-compass-spin-duration: 90s;
   --effect-compass-forward-direction: normal;
   --effect-compass-reverse-direction: reverse;
@@ -65,7 +61,7 @@
   --layout-section-space: 8.5rem;
   --layout-section-space-mobile: 5.5rem;
 
-  /* 圆角层级：按钮保持利落，介绍卡片稍柔和，均不超过 8px。 */
+  /* 圆角层级：按钮保持利落，介绍卡片稍柔和，均不超过 8px */
   --radius-control: 6px;
   --radius-card: 8px;
 
@@ -97,13 +93,11 @@
   --motion-filter-state: 250ms;
   --motion-scroll-knot: 400ms;
 
-  /* 用户设置运行时变量：由设置抽屉即时更新，不建议手动修改。 */
+  /* 随显示设置更新的动效比例 */
   --user-motion-scale: 0.6;
 
   /*
-   * ==================== 浅色 / 深色主题快速配置区 ====================
-   * 浅色值写在 :root，深色值写在文件末尾的 [data-theme="dark"]。
-   * 调整主题时优先修改这里和对应的深色覆盖，不要在板块样式文件中新增硬编码颜色。
+   * 浅色主题写在 :root，深色主题写在文件末尾的 [data-theme="dark"]
    */
   --theme-body-glow: rgba(212, 175, 55, 0.08);
   --theme-body-texture: rgba(140, 110, 80, 0.025);
@@ -137,7 +131,7 @@
   --theme-quick-prompt-text: var(--color-bronze-dark);
   --theme-quick-prompt-border: var(--color-rule-strong);
 
-  /* 页面纸张底色、正文颜色和次要文字颜色（精细平衡：明度85.5%~88.5%，温润暖米古宣色，不苍白也不沉闷） */
+  /* 页面底色与正文颜色 */
   --color-paper: oklch(85.5% 0.024 76);
   --color-paper-soft: oklch(88.5% 0.02 76);
   --color-paper-deep: oklch(79.5% 0.03 74);
@@ -207,10 +201,10 @@
   --dur-short: 180ms;
   --dur-medium: 650ms;
   --dur-long: 1100ms;
-  /* 边框和圆角。当前展陈风格使用直角卡片。 */
+  /* 边框和圆角 */
   --rule-hairline: 1px;
 
-  /* 旧样式使用的简短别名统一映射到上面的设计变量，避免维护两套色值。 */
+  /* 旧样式使用的简短别名统一映射到上面的设计变量，避免维护两套色值 */
   --paper: var(--color-paper);
   --ink: var(--color-ink);
   --muted: var(--color-ink-muted);
@@ -225,12 +219,10 @@
 }
 
 /*
- * ==================== 夜间模式（Dark / Night Theme）设计变量 ====================
- * 齐鲁金石雅韵深色基调：玄青墨玉、深黛陶泥、苍金青铜与朱砂微光。
- * 兼具东方美学与高对比度阅读舒适性。
+ * 深色主题变量
  */
 [data-theme="dark"] {
-  /* 深色主题快速配置：与 :root 中的同名变量一一对应。 */
+  /* 深色主题快速配置：与 :root 中的同名变量一一对应 */
   --theme-body-glow: rgba(255, 255, 255, 0.04);
   --theme-body-texture: rgba(255, 255, 255, 0.012);
   --theme-opening-bg: #151819;
@@ -256,7 +248,7 @@
   --theme-panel-shadow: rgba(0, 0, 0, 0.7);
   --theme-image-shadow: rgba(0, 0, 0, 0.65);
   --theme-image-edge-fade: 7%;
-  /* 浏览器式深色滚动条：暗轨道、灰色滑块，悬停时略微提亮。 */
+  /* 浏览器式深色滚动条：暗轨道、灰色滑块，悬停时略微提亮 */
   --theme-scrollbar-track: oklch(13% 0.008 75);
   --theme-scrollbar-thumb: oklch(42% 0.012 75);
   --theme-scrollbar-thumb-hover: oklch(55% 0.018 72);

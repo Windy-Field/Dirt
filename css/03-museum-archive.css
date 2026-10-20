@@ -1,4 +1,4 @@
-/* ==================== 12. 博物馆展陈视觉层：实物照片、展签和统一标题 ==================== */
+/* 12. 博物馆展陈视觉层：实物照片、展签和统一标题 */
 html, body { overflow-x: clip; }
 body { color: var(--color-ink); background: var(--color-paper); font-family: var(--font-body); }
 .hero {
@@ -25,7 +25,7 @@ body { color: var(--color-ink); background: var(--color-paper); font-family: var
   mask-composite: intersect;
 }
 
-/* 首屏角色图为透明 PNG，保留原始颜色，不使用文物照片的正片叠底效果。 */
+/* 透明角色图保留原色 */
 .hero-object .hero-relic img { mix-blend-mode: normal; }
 .hero-object .hero-relic-main { left: 50%; right: auto; top: 50%; transform: translate3d(-50%, calc(-50% + var(--parallax-y, 0px)), 0); }
 .hero-relic-main { width: min(40vw, 36rem); aspect-ratio: 1; animation: relic-drift var(--effect-hero-drift-duration) var(--ease-in-out) infinite alternate; }
@@ -38,7 +38,7 @@ body { color: var(--color-ink); background: var(--color-paper); font-family: var
 .hero-orbit { position: absolute; z-index: -1; width: 73%; aspect-ratio: 1; border: 1px solid var(--color-rule); border-radius: 50%; display: none; }
 .hero-orbit::before { content: ""; position: absolute; inset: 12%; border: 1px solid var(--color-rule); border-radius: 50%; }
 
-/* ==================== 首屏 IP 空间古风金石罗盘与立体装饰 ==================== */
+/* 首屏罗盘与角色 */
 .hero-object {
   position: relative;
   z-index: 2;
@@ -156,7 +156,7 @@ body { color: var(--color-ink); background: var(--color-paper); font-family: var
   100% { transform: scale(1.08); opacity: 1; }
 }
 
-/* 2. IP 角色温润光晕与互动对话气泡 */
+/* 2. 角色光晕与问候气泡 */
 .mascot-aura {
   position: absolute;
   inset: 5%;
@@ -298,7 +298,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   .section-heading h2 { font-size: 1rem; }
 }
 
-/* ==================== 13. 统一纸张表面与栏目间视觉系统 ==================== */
+/* 13. 统一纸张表面与栏目间视觉系统 */
 body,
 .hero,
 .knowledge,
@@ -376,7 +376,7 @@ body,
 .chat-form,
 .upload-preview { background: var(--color-paper); }
 
-/* AI 回复气泡：柔和古纸底色与微细印泥边框，与控制台背景自然相融 */
+/* AI 回复气泡 */
 .chat-message.assistant {
   border: 1px solid rgba(168, 51, 42, 0.15);
   background: var(--color-paper-soft);
@@ -423,7 +423,7 @@ body,
 .featured-course-copy h3,
 .ai-intro h2 { color: var(--color-ink); font-family: var(--font-display); font-style: normal; }
 
-/* ==================== 14. 标题、故事编号和栏目纸色对齐 ==================== */
+/* 14. 标题、故事编号和栏目纸色对齐 */
 .hero h1.seal-title {
   width: 4.2em;
   display: grid;
@@ -496,7 +496,7 @@ body,
   .knowledge-functions article { padding: var(--space-md); }
 }
 
-/* ==================== 15. 地图下方的知识研究、图录照片和检索列表 ==================== */
+/* 15. 地图下方的知识研究、图录照片和检索列表 */
 .map-knowledge { margin-top: var(--space-xl); padding-top: 0; border-top: 0; }
 .source-index-block { margin-top: 0; margin-bottom: var(--space-xl); padding-top: 0; border-top: 0; }
 .source-index-block > .map-knowledge-head { margin-bottom: var(--space-lg); }
@@ -519,7 +519,7 @@ body,
 .rubbing-group figure { padding: var(--space-md); border: var(--rule-hairline) solid var(--color-rule); background: var(--color-paper-soft); }
 .rubbing-group img { aspect-ratio: 1; }
 
-/* 实物与拓片图片区下方留出间隔，避免与资料卡片贴在一起。 */
+/* 实物与拓片图片区下方留出间隔，避免与资料卡片贴在一起 */
 .evidence-pair + .source-findings { margin-top: var(--space-md); }
 .source-findings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-left: var(--rule-hairline) solid var(--color-rule); }
 .source-findings article { min-width: 0; padding: var(--space-lg); border-right: var(--rule-hairline) solid var(--color-rule); border-bottom: var(--rule-hairline) solid var(--color-rule); }
@@ -536,7 +536,7 @@ body,
 .source-search-wrap { position: relative; width: 100%; margin-top: var(--space-xs); display: grid; align-items: center; }
 .source-index-head input { width: 100%; min-height: 3rem; margin: 0; padding: 0 3.25rem 0 var(--space-sm); color: var(--color-ink); border: var(--rule-hairline) solid var(--color-rule); outline: 2px solid transparent; background: var(--color-paper-soft); }
 .source-index-head input:focus-visible { outline-color: var(--color-focus); outline-offset: 1px; }
-/* 图录筛选清除按钮：有内容时显示，点击区域保持至少 44×44px。 */
+/* 图录筛选清除按钮：有内容时显示，点击区域保持至少 44×44px */
 .source-search-clear { position: absolute; z-index: 2; right: 2px; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; color: var(--color-ink-muted); border: 0; background: transparent; cursor: pointer; pointer-events: auto; font-size: 1.25rem; line-height: 1; transition: color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out); }
 .source-search-clear:hover { color: var(--color-accent); background: var(--color-paper-deep); }
 .source-search-clear:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
@@ -555,7 +555,7 @@ body,
 .source-index-more:hover { color: var(--color-accent-ink); border-color: var(--color-accent-dark); background: var(--color-accent-dark) !important; transform: translateY(-2px); box-shadow: 0 1rem 2rem rgba(116,35,31,.3), 0 0.25rem 0.5rem rgba(0, 0, 0, .1); }
 .source-index-more:active { transform: scale(.95); box-shadow: 0 .5rem 1rem rgba(116,35,31,.2); }
 
-/* Supplementary sources are integrated into their matching county cards. */
+/* 区县卡片中的补充史料 */
 .source-card-supplement {
   min-width: 0;
   margin: var(--space-md) calc(var(--space-md) * -1) 0;
@@ -613,7 +613,7 @@ body,
 .source-dialog-search { display: block; width: min(28rem, 100%); margin-bottom: var(--space-lg); color: var(--color-ink-muted); font-size: var(--text-xs); }
 .source-dialog-index { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .source-dialog-index > article.has-supplement { grid-column: 1 / -1; }
-/* 弹窗不参与页面栏目的 is-visible 渐显状态，卡片需直接显示。 */
+/* 弹窗不参与页面栏目的 is-visible 渐显状态，卡片需直接显示 */
 .source-dialog .source-dialog-index article {
   opacity: 1;
   transform: none;
@@ -653,7 +653,7 @@ body,
   .source-index-head label { width: 100%; }
 }
 
-/* ==================== 16. 长页面紧凑间距：控制各板块上下留白 ==================== */
+/* 16. 长页面紧凑间距：控制各板块上下留白 */
 .knowledge,
 .stories,
 .collection,

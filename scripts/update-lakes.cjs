@@ -16,7 +16,7 @@ async function updateWeishanLake() {
   }
   if (!feature || feature.geometry.type !== 'Polygon') throw new Error('Weishan polygon missing');
   await fs.writeFile(path.join(__dirname, '../data/shandong-lakes.js'),
-    `/* Natural Earth 1:10m lakes, public domain. Source: ${source}\n * Generalized lake outline; displayed depth is illustrative. */\nwindow.SHANDONG_LAKES = ${JSON.stringify([{ name: '微山湖', rings: feature.geometry.coordinates }])};\n`);
+    `/* Natural Earth 1:1000 万湖泊轮廓，公共领域数据\n * 来源：${source}\n * 湖面范围已概化，深度为展示参数\n */\nwindow.SHANDONG_LAKES = ${JSON.stringify([{ name: '微山湖', rings: feature.geometry.coordinates }])};\n`);
   console.log('Imported Weishan Hu polygon including interior rings.');
 }
 

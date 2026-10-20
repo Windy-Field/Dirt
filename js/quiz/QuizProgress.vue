@@ -7,7 +7,7 @@ const props = defineProps({
   score: { type: Number, default: 0 },
 });
 
-// 计算进度条缩放比例，题目总数为零时保持进度条为空。
+// 计算进度条缩放比例，题目总数为零时保持进度条为空
 const progressScale = computed(function getProgressScale() {
   if (!props.total) return 0;
   return props.completed / props.total;

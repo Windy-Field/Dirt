@@ -1,6 +1,6 @@
 # 项目文档
 
-`docs/` 放使用说明和部署资料，不参与网站运行。
+`docs/` 存放使用说明、源码导航和部署资料
 
 ```text
 docs/
@@ -17,6 +17,6 @@ docs/
 - [FC 部署说明](./deployment/DEPLOY-FC.md)
 - [项目总览](../README.md)
 
-网站要加载的图片、字体、课件、音视频和贴图都在根目录 `assets/` 中。移动这些文件时，需要同步修改 `index.html`、CSS 或 `data/media-config.ts` 中的路径。TypeScript 源码修改后先运行 `npm run compile:frontend`，生成的 `.runtime/` 不手工编辑。
+网站资源存放在 `assets/` 中，移动文件时同步更新页面、CSS 或 `data/media-config.ts` 中的路径。修改 TypeScript 后运行 `npm run compile:frontend`，生成 `.runtime/` 中的浏览器脚本
 
-研究原始材料、QA 截图和临时渲染结果不放在这里，也不参与发布。FC 压缩包由 `npm run package:fc` 生成到根目录的 `releases/`。
+运行 `npm run package:fc`，部署包生成在根目录的 `releases/` 中

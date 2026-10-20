@@ -1,21 +1,21 @@
 # 泥云智探
 
-泥云智探是一个介绍齐鲁封泥的网站，网址为：[官网](https://www.niyunzhitan.cn)。网站整理了封泥图片、印文和相关地理资料，同时还提供数字手卷、支教课件、3D 地图与牌具、AI 问答和知识测验。
+泥云智探整理齐鲁封泥的图片、印文和地理资料，提供数字手卷、支教课件、3D 地图、封泥牌具、AI 问答和知识测验
 
-完整项目由 [Windy-Field](https://github.com/Windy-Field) 开发并维护，源码见 [Windy-Field/Dirt](https://github.com/Windy-Field/Dirt)。
+由 [Windy-Field](https://github.com/Windy-Field) 开发维护，源码见 [Windy-Field/Dirt](https://github.com/Windy-Field/Dirt)
 
-若你第一次使用网站，可先读[访客使用说明](./docs/User-Safari.md)。
+[访问网站](https://www.niyunzhitan.cn) · [访客使用说明](./docs/User-Safari.md)
 
 ## 本地运行
 
-本地安装和构建需要 Node.js 20.19+ 或 22.12+。这是当前 Vite 的版本要求，建议选择仍在维护的 LTS 版本。
+本地构建需要 Node.js 20.19+ 或 22.12+，建议使用 LTS 版本
 
 ```powershell
 npm install
 npm start
 ```
 
-`npm start` 会先构建前端，再启动 `server.js`。浏览器访问 `http://127.0.0.1:3000` 即可。
+`npm start` 会先构建前端，再启动 `server.js`。浏览器访问 `http://127.0.0.1:3000` 即可
 
 只调试前端时可以运行：
 
@@ -33,56 +33,26 @@ npm run db:seed     # 写入数据库种子数据
 npm run package:fc  # 生成阿里云 FC 部署包
 ```
 
-维护者应在根目录的 `index.html` 中修改页面结构。构建脚本会生成 `dist/index.html`，不要直接编辑该生成文件。
+页面结构在根目录的 `index.html` 中修改，`dist/index.html` 由构建脚本生成
 
-双击根目录的 `index.html` 可以预览大部分静态内容。由于页面脚本由 TypeScript 编译生成，首次双击前需要先运行一次 `npm run compile:frontend`，或直接运行 `npm run build`；使用 AI 和数据库功能时，还需要启动 `server.js`。
+双击 `index.html` 可预览静态内容，首次打开前运行 `npm run build`。AI 和数据库功能需要启动 `server.js`
 
 ## 网站功能
 
-- 数字手卷介绍封泥从书写、系绳到验封的过程，支持按钮、键盘、滚轮、拖动和触屏滑动。
-- 齐鲁封泥图鉴展示代表藏品，完整图录收录 45 个现代县区的资料。
-- 地图有精细立体版和简化平面版，可以筛选青州、兖州、徐州等历史行政体系。地点详情显示现代位置、古代归属和资料数量。
-- 课程区提供三课时课件、原始 PDF、教案学习单和支教活动回顾视频。课件进度条和视频进度条都可以拖动。
-- 封泥牌具用 Three.js 展示麻将和扑克牌，可旋转、缩放、翻面、切换款式和全屏查看。
-- “印小灵”支持文字提问和图片辅助观察。一次最多上传 4 张 JPEG、PNG 或 WebP 图片，每张不超过 5 MB。
-- 趣味问答每轮最多抽取 10 道题，提交答案后显示解析。
-- 显示设置包含浅色、深色、昼夜自动主题，以及动效、背景微尘、鼠标尾迹、开屏动画、音乐和宠物设置。正文字号和行距固定使用默认值。
+- 数字手卷介绍封泥从书写、系绳到验封的过程，支持按钮、键盘、滚轮、拖动和触屏滑动
+- 齐鲁封泥图鉴展示代表藏品，完整图录收录 45 个现代县区的资料
+- 地图有精细立体版和简化平面版，可以筛选青州、兖州、徐州等历史行政体系。地点详情显示现代位置、古代归属和资料数量
+- 课程区提供三课时课件、原始 PDF、教案学习单和支教活动回顾视频。课件进度条和视频进度条都可以拖动
+- 封泥牌具用 Three.js 展示麻将和扑克牌，可旋转、缩放、翻面、切换款式和全屏查看
+- “印小灵”支持文字提问和图片辅助观察。一次最多上传 4 张 JPEG、PNG 或 WebP 图片，每张不超过 5 MB
+- 趣味问答每轮最多抽取 10 道题，提交答案后显示解析
+- 显示设置包含浅色、深色、昼夜自动主题，以及动效、背景微尘、鼠标尾迹、开屏动画、音乐和宠物设置
 
 ## 代码结构
 
-页面主体使用原生 HTML、CSS 和 TypeScript，趣味问答使用 Vue 3，由 Vite 编译。普通前端脚本通过 `window` 上的对象共享功能，因此也能支持本地双击预览。TypeScript 源码在 `js/*.ts` 和 `data/*.ts` 中，编译后的浏览器脚本位于 `.runtime/` 目录。
+页面主体使用原生 HTML、CSS 和 TypeScript，趣味问答使用 Vue 3，由 Vite 编译。普通前端脚本通过 `window` 上的对象共享功能，因此也能支持本地双击预览。TypeScript 源码在 `js/*.ts` 和 `data/*.ts` 中，编译后的浏览器脚本位于 `.runtime/` 目录
 
-模块职责、生成文件来源和验证方法见[源码阅读导航](./docs/CODE-READING.md)。
-
-常改的文件如下：
-
-- [index.html](./index.html)：页面结构和脚本加载顺序。
-- [css/tokens.css](./css/tokens.css)：颜色、字体、间距、布局尺寸和动效参数。
-- [js/app.ts](./js/app.ts)：页面初始化、共享工具和基础数据渲染。
-- [js/theme-bootstrap.ts](./js/theme-bootstrap.ts)：在 CSS 加载前恢复主题，避免刷新时闪出错误颜色。
-- [js/course-browser.ts](./js/course-browser.ts)：课程切换、课件翻页和进度条。
-- [js/scroll-story.ts](./js/scroll-story.ts)：数字手卷。
-- [js/map-browser.ts](./js/map-browser.ts) 与 [js/three-map.ts](./js/three-map.ts)：地图筛选、模式切换和 3D 地形。
-- [js/source-archive.ts](./js/source-archive.ts)：完整图录与补充史料。
-- [js/three-showcase.ts](./js/three-showcase.ts)：封泥牌具。
-- [js/ai-chat.ts](./js/ai-chat.ts)、[js/ai-service.ts](./js/ai-service.ts)：AI 对话界面和请求。
-- [js/media-coordinator.ts](./js/media-coordinator.ts)：背景音乐与视频之间的播放协调。
-- [js/cursor-debris.ts](./js/cursor-debris.ts)：鼠标碎屑尾迹及其开关、大小、密度设置；常用参数集中在文件顶部。
-- [server.js](./server.js)：静态文件、视频分段请求、AI 代理和数据库 API。
-
-`js/seal-glyph-paths.js` 保存开屏四字的 SVG 路径，`data/*-inline.js` 和 `data/texture-inline.js` 是生成数据，`js/vendor/three.js` 是生成的第三方运行库；这些文件保持 JavaScript。`js/offline-texture-loader.ts` 只在 `file://` 模式加载内嵌 3D 贴图。修改 TypeScript 后运行 `npm run compile:frontend`，页面加载的是 `.runtime/` 中的编译结果。
-
-CSS 的加载顺序不可随意交换：
-
-```text
-tokens.css
-01-base-opening.css
-02-content-layout.css
-03-museum-archive.css
-04-scroll.css
-05-typography.css
-06-enhancements.css
-```
+模块职责、生成文件来源和验证方法见[源码阅读导航](./docs/CODE-READING.md)
 
 ## 数据和配置
 
@@ -93,9 +63,9 @@ USE_DATABASE: false,
 USE_QUIZ_DATABASE: false
 ```
 
-这两个开关位于 [js/config.ts](./js/config.ts)，可以分别启用栏目数据库和题库数据库。数据库准备方法见[数据库说明](./db/README.md)。
+这两个开关位于 [js/config.ts](./js/config.ts)，可以分别启用栏目数据库和题库数据库。数据库准备方法见[数据库说明](./db/README.md)
 
-课程文件、音乐和牌具贴图的路径集中在 [data/media-config.ts](./data/media-config.ts)。本地资源使用 `./assets/` 下的相对路径。添加外部资源时，维护者需要使用 HTTPS 地址，并将主机名加入 `allowedExternalHosts`。浏览器会加载这份公开配置，因此文件中不能包含密码、Token、Cookie 或私密签名。
+课程、音乐和牌具贴图配置在 [data/media-config.ts](./data/media-config.ts)。本地资源使用 `./assets/` 相对路径，外部资源使用 HTTPS，并将主机名加入 `allowedExternalHosts`
 
 资源维护说明：
 
@@ -113,7 +83,7 @@ DASHSCOPE_APP_ID=c786fc9824414081980b6aa3258bb787
 QWEN_VL_MODEL=qwen-vl-plus
 ```
 
-API Key 只能放在本地 `.env` 或 FC 环境变量中。不要把真实密钥写入 HTML、前端 JavaScript、文档或 Git 仓库。
+API Key 存放在本地 `.env` 或 FC 环境变量中，前端和仓库仅保留配置示例
 
 服务启动后可检查：
 
@@ -122,13 +92,13 @@ GET http://127.0.0.1:3000/api/health
 GET http://127.0.0.1:3000/api/ai/status
 ```
 
-`/api/ai/status` 会调用百炼应用，可能消耗额度。服务端将成功结果缓存 5 分钟，失败结果缓存 15 秒。维护者不应频繁调用该接口来监测服务器是否在线。`configured: true` 表示配置齐全，是否连通要看 `connected`。
+`/api/ai/status` 会调用百炼应用并消耗额度，成功结果缓存 5 分钟，失败结果缓存 15 秒。`configured` 表示配置是否齐全，`connected` 表示连通状态。监测服务器在线情况使用 `/api/health`
 
-服务端优先读取 FC 环境变量中的应用 ID，未设置时才使用代码中的默认值。打包脚本不会将本地 `.env` 加入部署包，维护者需要在 FC 控制台单独配置线上密钥。
+线上密钥在 FC 控制台配置，服务端优先读取环境变量中的应用 ID
 
 ## Umami 统计
 
-网站通过 [js/config.ts](./js/config.ts) 接入 Umami Cloud，统计域名限制为 `niyunzhitan.cn` 和 `www.niyunzhitan.cn`。本地双击页面时，网站不会加载统计脚本；访客在浏览器中启用 Do Not Track 时，Umami 也不会记录访问。
+Umami Cloud 配置在 [js/config.ts](./js/config.ts)，仅统计 `niyunzhitan.cn` 和 `www.niyunzhitan.cn` 的访问，并遵循浏览器的 Do Not Track 设置
 
 更换 Umami 站点时，修改以下三项：
 
@@ -138,15 +108,15 @@ UMAMI_SCRIPT_URL: "https://cloud.umami.is/script.js",
 UMAMI_DOMAINS: "niyunzhitan.cn,www.niyunzhitan.cn",
 ```
 
-留空 `UMAMI_WEBSITE_ID` 即可关闭统计。使用自建 Umami 时，还要在 `server.js` 的 CSP 中放行新的脚本和上报域名。
+留空 `UMAMI_WEBSITE_ID` 即可关闭统计。使用自建 Umami 时，还要在 `server.js` 的 CSP 中放行新的脚本和上报域名
 
 ## Three.js 和地图
 
-[js/vendor/three.js](./js/vendor/three.js) 是基于 Three.js 0.160.0 生成的按需版本，导出列表位于 [scripts/three-entry.js](./scripts/three-entry.js)。新增 `THREE.xxx` 调用后，先补充对应导出，再运行 `npm run build:three`。不要直接删改生成文件里的内部类或着色器。
+[js/vendor/three.js](./js/vendor/three.js) 由 Three.js 0.160.0 按需构建，导出列表位于 [scripts/three-entry.js](./scripts/three-entry.js)。新增 `THREE.xxx` 调用后，补充对应导出，再运行 `npm run build:three`
 
-地图参数放在 `js/three-map.ts` 顶部的 `MAP_VIEW`，牌具参数放在 `js/three-showcase.ts` 顶部。Three.js 许可证见 [LICENSE.three.txt](./js/vendor/LICENSE.three.txt)。
+地图参数放在 `js/three-map.ts` 顶部的 `MAP_VIEW`，牌具参数放在 `js/three-showcase.ts` 顶部。Three.js 许可证见 [LICENSE.three.txt](./js/vendor/LICENSE.three.txt)
 
-浅色线为现代市界，蓝色为主要河槽示意，不是历史行政界线或完整水网。数据来源、更新脚本和局部展示排除见[山东地形数据说明](./assets/terrain/README.md)。
+浅色线表示现代市界，蓝色表示主要河流和湖区。数据来源、示意范围和更新方法见[山东地形数据说明](./assets/terrain/README.md)
 
 ## 构建和发布
 
@@ -162,13 +132,13 @@ npm run build
 npm run package:fc
 ```
 
-打包脚本会检查源码、重建 `dist/`，再复制服务端文件并安装运行依赖。生成的压缩包包含 `node_modules/`，FC 启动时不需要再安装依赖。输出文件为：
+也可双击根目录的 `package-fc.cmd` 打包。脚本会检查源码、重建前端并安装服务端运行依赖，生成可直接上传的压缩包：
 
 ```text
 releases/niyun-zhitan-fc.zip
 ```
 
-`dist/`、`deploy/fc/dist/` 和 `releases/` 都是生成目录。`deploy/fc/` 用来整理部署文件，其中的 `package.json` 和锁文件只列出运行依赖；`server.js`、`server/` 和 `dist/` 由打包脚本同步。打包不会自动上传或部署，后续操作见 [FC 部署说明](./docs/deployment/DEPLOY-FC.md)。
+`dist/`、`deploy/fc/dist/` 和 `releases/` 由构建脚本生成。`deploy/fc/` 的 `package.json` 和锁文件列出运行依赖，服务端与前端文件在打包时同步。上传和部署步骤见 [FC 部署说明](./docs/deployment/DEPLOY-FC.md)
 
 ## 目录一览
 
@@ -178,7 +148,7 @@ Web/
 ├─ css/          页面样式
 ├─ data/         展示数据与公开配置
 ├─ db/           数据库结构、迁移和种子脚本
-├─ deploy/fc/    FC 运行包装层
+├─ deploy/fc/    FC 部署目录
 ├─ docs/         使用说明和部署文档
 ├─ js/           前端功能模块
 ├─ releases/     本地生成的发布包，不提交 Git
@@ -187,5 +157,3 @@ Web/
 ├─ index.html    页面源文件
 └─ server.js     Node.js 服务入口
 ```
-
-提交或部署前，请确认 `.env`、API Key、数据库密码和本地调试文件没有进入 Git 或压缩包。页面修改后至少检查手机和桌面宽度，并实际测试地图、课件、视频、AI 与问答。

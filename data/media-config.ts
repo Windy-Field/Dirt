@@ -1,18 +1,11 @@
 /*
- * ================================================================
- * 常用媒体替换入口：以后换视频、课程封面、Three.js 贴图，只改本文件。
- * ================================================================
- * 安全规则：
- * 1. 推荐使用 ./assets/ 下的本地相对路径，最简单也最安全。
- * 2. 外部资源必须使用 https://，并把域名加入 allowedExternalHosts。
- * 3. 本文件会公开给浏览器，绝对不能填写密码、Token、Cookie 或 API Key。
+ * 课程、音乐和牌具贴图配置
+ * 本地资源使用 ./assets/ 路径，外部资源使用 HTTPS 并登记域名
  */
 window.MEDIA_CONFIG = {
     /*
-     * ==================== 音乐快速配置区 ====================
-     * 修改音乐时优先调整这里，不需要改 js/media-coordinator.js。
-     * defaultTrackId 必须对应 tracks 中的 id；defaultVolume 使用 0～1，0.06 表示 6%。
-     * tracks.volumeScale 是单曲音量系数：1 为正常，0.6 为总音量的 60%。
+     * defaultTrackId 对应 tracks 中的 id，defaultVolume 范围为 0～1
+     * volumeScale 是单曲音量系数，0.6 表示总音量的 60%
      */
     backgroundMusic: {
         title: "泥云智探背景音乐",
@@ -27,12 +20,10 @@ window.MEDIA_CONFIG = {
         ]
     },
     brandLogo: "",
-    // 【位置 1：外部媒体域名白名单】本地 ./assets/ 路径不需要填写。
+    // 允许加载的外部媒体域名
     allowedExternalHosts: [
-    // "video.example.com",
-    // "cdn.example.com"
     ],
-    // 【位置 1：三课时课程资料】课程 id 必须与 mock 数据或数据库中的 id 相同。
+    // 课程 ID 与本地数据或数据库记录一致
     courses: {
         "COURSE-01": {
             videoUrl: "",
@@ -71,7 +62,7 @@ window.MEDIA_CONFIG = {
         recapVideoUrl: "./assets/courses/course-recap.mp4",
         recapPosterUrl: "./assets/courses/course-recap-poster.jpg"
     },
-    // 【位置 2：Three.js 贴图】保留文件名时只覆盖 assets 中的同名文件即可。
+    // 牌具贴图路径
     textures: {
         pokerSpadeKFront: "./assets/textures/poker/front/k.jpg",
         pokerDiamondJFront: "./assets/textures/poker/front/j.jpg",
@@ -81,7 +72,7 @@ window.MEDIA_CONFIG = {
         mahjongDefaultBack: "./assets/textures/mahjong/back/default.jpg"
     }
 };
-// 所有媒体模块共用这一道地址校验，避免 javascript:、HTTP 明文或未授权外站资源。
+// 所有媒体模块共用这一道地址校验，避免 javascript:、HTTP 明文或未授权外站资源
 window.MediaSecurity = {
     resolve(value) {
         const source = String(value || "").trim();

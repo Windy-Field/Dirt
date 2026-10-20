@@ -1,4 +1,4 @@
-// Classic scripts share these interfaces through window, in index.html load order.
+// 挂在 window 上的配置与模块接口
 interface AppConfig {
     AI_API_BASE_URL?: string;
     AI_FALLBACK_API_BASE_URL?: string;

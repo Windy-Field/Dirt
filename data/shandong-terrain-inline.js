@@ -1,4 +1,4 @@
-/* 双击 index.html 时使用的内嵌 DEM 数据，避免 file:// 读取图片触发浏览器跨源限制。 */
+/* 双击 index.html 时使用的内嵌 DEM 数据，避免 file:// 读取图片触发浏览器跨源限制 */
 window.SHANDONG_TERRAIN_INLINE = {
   width: 768,
   height: 392,

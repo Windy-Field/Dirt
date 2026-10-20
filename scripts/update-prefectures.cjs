@@ -25,11 +25,11 @@ async function updatePrefectures() {
     }
     prefectures.push({
       name: feature.properties.name.replace(/市$/, ''),
-      // 展示层按边统计归属；这里仅展开环数组，不把不同环拼成一条折线。
+      // 保留各环的独立坐标，供展示层匹配共享边
       rings: rings,
     });
   }
-  const header = `/* DataV administrative polygons, not rivers. Source: ${source}\n * Full source vertices retained; cultural visualization, not survey data.\n */\n`;
+  const header = `/* 山东市界，保留 DataV 源数据顶点\n * 来源：${source}\n */\n`;
   await fs.writeFile(path.join(__dirname, '../data/shandong-prefectures.js'),
     header + 'window.SHANDONG_PREFECTURES = ' + JSON.stringify(prefectures) + ';\n');
   console.log(`Updated ${prefectures.length} prefectures without vertex simplification.`);

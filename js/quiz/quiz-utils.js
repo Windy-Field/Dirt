@@ -1,6 +1,6 @@
 const OPTION_KEYS = ["A", "B", "C", "D"];
 
-// 显示顺序可以随机，但保留原选项编号，提交时才能正确判题。
+// 显示顺序可以随机，但保留原选项编号，提交时才能正确判题
 export function shuffleOptions(question) {
   const options = [];
   for (let index = 0; index < OPTION_KEYS.length; index += 1) {
@@ -33,7 +33,7 @@ export function shuffleOptions(question) {
   return displayOptions;
 }
 
-// 判断题目的选项文字是否较长，用来切换更合适的页面样式。
+// 判断题目的选项文字是否较长，用来切换更合适的页面样式
 export function hasLongOption(question) {
   for (let index = 0; index < OPTION_KEYS.length; index += 1) {
     const key = OPTION_KEYS[index];

@@ -1,7 +1,7 @@
 (function initializeCursorDebris() {
     "use strict";
-    // ==================== 鼠标尾迹配置 ====================
-    // 尺寸和距离为 CSS 像素，时间为毫秒，角度为度，透明度为 0～1。
+    // 鼠标尾迹配置
+    // 尺寸和距离为 CSS 像素，时间为毫秒，角度为度，透明度为 0～1
     const settings = {
         interval: 16, // 两次生成的最小间隔；越大越稀疏
         lifetime: 750, // 单粒持续时间
@@ -39,7 +39,7 @@
         preferences.size = clampPreference(saved.size, 2, 8, defaults.size);
         preferences.density = clampPreference(saved.density, 1, 4, defaults.density);
     }
-    catch (_) { /* 存储不可用或损坏时沿用默认值。 */ }
+    catch (_) { /* 存储不可用或损坏时沿用默认值 */ }
     const enabledInput = (document.querySelector("#cursorTrailEnabled") as HTMLInputElement);
     const sizeInput = (document.querySelector("#cursorTrailSize") as HTMLInputElement);
     const densityInput = (document.querySelector("#cursorTrailDensity") as HTMLInputElement);
@@ -145,7 +145,7 @@
         try {
             localStorage.setItem(storageKey, JSON.stringify(preferences));
         }
-        catch (_) { /* 仍允许本次页面调整。 */ }
+        catch (_) { /* 存储失败时，设置仍在当前页面生效 */ }
         syncTrailControls();
     }
     function isEnabled() {
@@ -181,7 +181,7 @@
         const sideways = (Math.random() - 0.5) * settings.sidewaysRange;
         const fall = settings.fallMin + Math.random() * settings.fallRange;
         const rotation = Math.random() * settings.initialRotationRange;
-        // 固定轨迹只动画 transform/opacity；先微微飞散，再下落淡出。
+        // 固定轨迹只动画 transform/opacity；先微微飞散，再下落淡出
         const animation = particle.animate([
             { transform: ("translate3d(" + (x) + "px, " + (y) + "px, 0) rotate(" + (rotation) + "deg)"), opacity: settings.initialOpacity },
             { transform: ("translate3d(" + (x + sideways * settings.middleSidewaysRatio) + "px, " + (y - settings.lift) + "px, 0) rotate(" + (rotation + settings.middleRotation) + "deg)"), opacity: settings.middleOpacity, offset: settings.middleOffset },
@@ -207,7 +207,7 @@
             return;
         }
         lastEmission = now;
-        // 在前后采样点之间补粒子，快速移动也不会只留下孤立点；限制跨度避免跨屏长线。
+        // 在相邻采样点间补充粒子，并限制最大跨度
         const distance = Math.hypot(point.x - previousPoint.x, point.y - previousPoint.y);
         let valueResult11;
         if (distance <= settings.maxInterpolationDistance) {
@@ -223,7 +223,7 @@
         }
         previousPoint = point;
     }, { passive: true });
-    // 退出窗口、切到后台或关闭动态效果时立即清理，不保留定时循环。
+    // 退出窗口、切到后台或关闭动效时清理粒子
     document.documentElement.addEventListener("pointerleave", clearTrail);
     document.addEventListener("pointerdown", clearTrail, { passive: true });
     window.addEventListener("blur", clearTrail);
@@ -252,7 +252,7 @@
         try {
             localStorage.removeItem(storageKey);
         }
-        catch (_) { /* 默认值仍立即生效。 */ }
+        catch (_) { /* 默认值仍立即生效 */ }
         syncTrailControls();
     });
     syncTrailControls();

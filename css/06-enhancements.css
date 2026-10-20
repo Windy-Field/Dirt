@@ -1,9 +1,7 @@
-/* ==========================================================================
-   Oriental Seal & Clay Museum Enhancements (Animations, Badges & Motifs)
-   ========================================================================== */
+/* 交互动效与深色主题 */
 
 /* 19.1 首屏封泥呼吸和环境光效果 */
-/* 高于开屏层（9999），不参与命中检测；模态弹窗仍由浏览器顶层覆盖。 */
+/* 高于开屏层（9999），不参与命中检测；模态弹窗仍由浏览器顶层覆盖 */
 .cursor-clay-debris {
   position: fixed;
   left: 0;
@@ -62,7 +60,6 @@
   transform: scale(0.95);
 }
 
-/* Ink Stamp Ripple */
 .stamp-ripple {
   position: absolute;
   border-radius: 50%;
@@ -105,7 +102,7 @@
   pointer-events: none;
 }
 
-/* 19.4 并列介绍内容统一使用独立卡片；实时 3D 倾斜由 page-effects.js 写入变量。 */
+/* 19.4 并列介绍内容统一使用独立卡片；实时 3D 倾斜由 page-effects.js 写入变量 */
 .story-grid,
 .story-details,
 .source-findings,
@@ -215,7 +212,7 @@
   box-shadow: 0 2px 8px rgba(41, 62, 56, 0.35);
 }
 
-/* 19.6a 克制圆角：命令控件更紧，承载介绍内容的卡片更柔和。 */
+/* 控件与介绍卡片的圆角 */
 .button:not(.text-button),
 .filter-chip,
 .search-row button,
@@ -270,7 +267,7 @@
 }
 
 
-/* 网格子元素使用不同延迟，避免所有卡片同时出现。 */
+/* 网格子元素使用不同延迟，避免所有卡片同时出现 */
 .collection-grid .relic-card,
 .story-grid .story-card,
 .knowledge-functions article,
@@ -298,7 +295,7 @@
   transform: translateY(0);
 }
 
-/* 卡片进入动画结束后，恢复备份版本的 350ms 实时倾斜响应，避免被 900ms 渐显过渡覆盖。 */
+/* 入场结束后使用 350ms 倾斜过渡 */
 .is-visible .collection-grid .relic-card,
 .is-visible .story-grid .story-card,
 .is-visible .knowledge-functions article,
@@ -353,15 +350,14 @@
   justify-content: center;
 }
 
-/* Unified Section Divider System · 统一各栏目间分割线与留白节奏 */
+/* 栏目分割线与间距 */
 main > section {
   position: relative;
   border-top: var(--rule-hairline) solid var(--color-rule) !important;
 }
 
 /*
- * 一级栏目背景铺满视口，内容起点仍与“封泥牌具”的 section-shell 对齐。
- * 原先直接写在 section 上的限宽规则会让栏目两侧露出页面底色，这里把限宽转换为内边距。
+ * 栏目背景铺满视口，通过内边距与 section-shell 对齐
  */
 main > section.section-shell {
   width: 100%;
@@ -373,7 +369,7 @@ main > section:first-of-type {
   border-top: 0 !important;
 }
 
-/* 手机地图筛选最终覆盖：确保所有窄屏断点都使用完整可见的两层布局。 */
+/* 窄屏地图筛选分为两行 */
 @media (max-width: 47.5rem) {
   .map-toolbar {
     width: 100%;
@@ -413,7 +409,7 @@ main > section:first-of-type {
   }
 }
 
-/* 牌具是全宽展区，AI 是限宽内容区；用全视口分割线连接两个栏目。 */
+/* 牌具是全宽展区，AI 是限宽内容区；用全视口分割线连接两个栏目 */
 .creative-section + .ai-section::after {
   content: "";
   position: absolute;
@@ -430,10 +426,10 @@ main > section:first-of-type {
     padding-inline: 1.125rem;
   }
 
-  /* 移动端最终覆盖：统一卡片内边距，避免首项桌面规则再次把内容推向右侧。 */
+  /* 窄屏卡片使用相同内边距 */
 }
 
-/* 20. 趣味问答：原生单选控件、明确判题状态和稳定的移动端布局。 */
+/* 20. 趣味问答：原生单选控件、明确判题状态和稳定的移动端布局 */
 .quiz-section { background: var(--color-paper); }
 .quiz-toolbar {
   margin-top: var(--space-xl);
@@ -696,7 +692,7 @@ main > section:first-of-type {
 .quiz-result #resetQuiz { margin-top: var(--space-sm); }
 .quiz-result > .button + .button { margin-top: var(--space-md); }
 
-/* 21. 成绩分享：延续展签和朱砂印章语言，操作集中在弹窗底部。 */
+/* 21. 成绩分享：延续展签和朱砂印章语言，操作集中在弹窗底部 */
 .share-dialog { width: min(35rem, calc(100vw - 2rem)); padding: 0; color: var(--color-ink); border: 0; background: transparent; overflow: visible; }
 .share-dialog::backdrop { background: rgba(25, 28, 27, .68); }
 .share-dialog.is-closing .share-panel { pointer-events: none; }
@@ -718,7 +714,7 @@ main > section:first-of-type {
 .share-feedback { min-height: 1.5rem; margin: var(--space-sm) 0 0; color: var(--color-ink-muted); font-size: var(--text-xs); }
 .share-close:focus-visible, .share-copy:focus-visible, .quiz-share-button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 
-/* 22. 印小灵常驻宠物：资源和对话逻辑位于 data/ai-pet-config.js 与 js/ai-pet.js。 */
+/* 22. 印小灵宠物，配置见 data/ai-pet-config.ts */
 .ai-pet {
   position: fixed;
   z-index: 240;
@@ -753,7 +749,6 @@ main > section:first-of-type {
 .ai-pet-toggle:active { cursor: grabbing; }
 .ai-pet-toggle:hover { transform: translateY(-.25rem) scale(1.02); }
 
-/* 贴图多图层平滑切换舞台 */
 .ai-pet-stage {
   position: relative;
   width: 100%;
@@ -764,7 +759,7 @@ main > section:first-of-type {
   will-change: transform;
 }
 
-/* 双缓冲贴图图层：实现 Cross-Fade 平滑交叉溶解与微弹动 */
+/* 两层图片交替淡入淡出 */
 .ai-pet-layer {
   position: absolute;
   inset: 0;
@@ -811,7 +806,7 @@ main > section:first-of-type {
 .ai-pet-greeting {
   position: absolute;
   z-index: 10;
-  /* 以图片左上角为基准放置气泡中心，让气泡底边位于猫耳上方。 */
+  /* 以图片左上角为基准放置气泡中心，让气泡底边位于猫耳上方 */
   left: var(--layout-ai-pet-greeting-offset-x);
   top: var(--layout-ai-pet-greeting-offset-y);
   padding: .35rem .55rem;
@@ -945,11 +940,11 @@ main > section:first-of-type {
 }
 
 /*
- * ==================== 23. 全站夜间模式暗色适配（Dark Mode Adjustments） ====================
- * 基础颜色均由 tokens.css 的 [data-theme="dark"] 自动替换。
- * 本节只保留无法靠变量继承完成的结构性差异，例如图片渐隐、遮罩和状态色。
+ * 23. 深色主题
+ * 基础颜色均由 tokens.css 的 [data-theme="dark"] 自动替换
+ * 本节只保留无法靠变量继承完成的结构性差异，例如图片渐隐、遮罩和状态色
  */
-/* 只调整纵向滚动区域；横向手卷、进度条和 range 控件保留各组件自己的样式。 */
+/* 只调整纵向滚动区域；横向手卷、进度条和 range 控件保留各组件自己的样式 */
 [data-theme="dark"] {
   color-scheme: dark;
   scrollbar-color: var(--theme-scrollbar-thumb) var(--theme-scrollbar-track);
@@ -1047,7 +1042,7 @@ main > section:first-of-type {
   background: var(--theme-scrollbar-track);
 }
 
-/* 导航链接在深色表面上提高当前项辨识度。 */
+/* 导航链接在深色表面上提高当前项辨识度 */
 [data-theme="dark"] .main-nav a {
   color: var(--color-ink-muted);
 }
@@ -1070,7 +1065,7 @@ main > section:first-of-type {
   border-bottom-color: var(--color-ink-muted);
 }
 
-/* 开馆动画的颜色已集中到 tokens.css；这里只保留深色阴影强度差异。 */
+/* 开馆动画的颜色已集中到 tokens.css；这里只保留深色阴影强度差异 */
 [data-theme="dark"] .scroll-paper-container {
   box-shadow: 0 1.2rem 3.5rem rgba(0, 0, 0, 0.65);
 }
@@ -1086,7 +1081,7 @@ main > section:first-of-type {
 [data-theme="dark"] .scroll-relic img,
 [data-theme="dark"] .evidence-pair img,
 [data-theme="dark"] .ai-pet-image {
-  /* 保持封泥本体亮度，只用柔和阴影和边缘渐隐改善夜间观感。 */
+  /* 保持封泥本体亮度，只用柔和阴影和边缘渐隐改善夜间观感 */
   mix-blend-mode: normal;
   filter: drop-shadow(0 0.8rem 1.4rem var(--theme-image-shadow));
 }
@@ -1098,7 +1093,7 @@ main > section:first-of-type {
 [data-theme="dark"] .relic-visual.has-image > img,
 [data-theme="dark"] .scroll-relic img,
 [data-theme="dark"] .evidence-pair img {
-  /* 只让四周淡出，图片主体保持原始亮度和颜色。 */
+  /* 只让四周淡出，图片主体保持原始亮度和颜色 */
   -webkit-mask-image:
     linear-gradient(to right, transparent 0, black var(--theme-image-edge-fade), black calc(100% - var(--theme-image-edge-fade)), transparent 100%),
     linear-gradient(to bottom, transparent 0, black var(--theme-image-edge-fade), black calc(100% - var(--theme-image-edge-fade)), transparent 100%);
@@ -1109,7 +1104,7 @@ main > section:first-of-type {
   mask-composite: intersect;
 }
 
-/* 首屏角色是透明 PNG，不参与文物照片的双重渐隐遮罩，避免 Chrome 合成出阶梯状三角块。 */
+/* 透明角色图单独处理遮罩，保持边缘平滑 */
 [data-theme="dark"] .hero-object .hero-relic-main img {
   -webkit-mask-image: none;
   -webkit-mask-composite: initial;
@@ -1117,7 +1112,7 @@ main > section:first-of-type {
   mask-composite: initial;
 }
 
-/* 地图筛选器需要比普通表面更明显的状态差异。 */
+/* 地图筛选器需要比普通表面更明显的状态差异 */
 [data-theme="dark"] .map-toolbar {
   background: rgba(255, 255, 255, 0.05);
   border-color: var(--color-rule);
@@ -1133,7 +1128,7 @@ main > section:first-of-type {
   border-color: var(--color-bronze) !important;
 }
 
-/* 文创图面使用专门的低亮度底色，避免夜间过亮。 */
+/* 文创图面使用专门的低亮度底色，避免夜间过亮 */
 [data-theme="dark"] .course-list button,
 [data-theme="dark"] .story-card {
   background: var(--color-paper-soft);
@@ -1195,7 +1190,7 @@ main > section:first-of-type {
   border-color: oklch(62% 0.18 29 / 40%);
 }
 
-/* 弹窗夜间只覆盖遮罩和阴影，面板底色由主题变量自动继承。 */
+/* 弹窗夜间只覆盖遮罩和阴影，面板底色由主题变量自动继承 */
 [data-theme="dark"] .settings-panel,
 [data-theme="dark"] .search-box,
 [data-theme="dark"] .source-dialog-panel,
@@ -1209,7 +1204,7 @@ main > section:first-of-type {
   background: var(--theme-modal-scrim);
 }
 
-/* AI助手与印小灵夜间调色：提高对话框明度与边框辨识度，确保柔和清爽不发黑 */
+/* AI 对话框的深色主题 */
 [data-theme="dark"] .ai-pet-toggle {
   background: transparent;
   border-color: transparent;
@@ -1258,7 +1253,7 @@ main > section:first-of-type {
   background: var(--color-paper-deep);
 }
 
-/* 快捷提问使用独立深色表面，避免透明按钮与 AI 面板背景混在一起。 */
+/* 快捷提问使用独立深色表面，避免透明按钮与 AI 面板背景混在一起 */
 [data-theme="dark"] .quick-prompts button,
 [data-theme="dark"] .ai-pet-prompts button {
   color: var(--theme-quick-prompt-text);
@@ -1304,7 +1299,7 @@ main > section:first-of-type {
   background: radial-gradient(circle, rgba(224, 86, 74, 0.35) 0%, rgba(212, 175, 55, 0.15) 50%, transparent 75%);
 }
 
-/* 减少动态效果：集中管理，避免同一媒体查询散落在多个板块。 */
+/* 减少动态效果：集中管理，避免同一媒体查询散落在多个板块 */
 @media (prefers-reduced-motion: reduce) {
   html,
   .scroll-viewport { scroll-behavior: auto; }

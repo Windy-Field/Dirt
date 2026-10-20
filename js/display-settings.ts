@@ -121,7 +121,7 @@ const NiyunDisplaySettings = (function registerDisplaySettings() {
                     return valueResult19;
                 },
             };
-            // 打开设置时，把当前保存的值填回单选框、滑块和开关。
+            // 打开设置时，把当前保存的值填回单选框、滑块和开关
             function sync() {
                 if (!form) {
                     return;

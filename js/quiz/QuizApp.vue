@@ -62,7 +62,7 @@ const correctDisplayKey = computed(function getCorrectDisplayKey() {
   return answerResult.value.correctAnswer;
 });
 
-// 进入新题前清空上题选择和解析，分数则继续保留。
+// 进入新题前清空上题选择和解析，分数则继续保留
 function prepareQuestion() {
   selectedAnswer.value = "";
   selectedQuestionId.value = null;
@@ -76,13 +76,13 @@ function goToNextQuestion() {
   index.value += 1;
 }
 
-// 保存用户当前选择的答案和对应题号，防止切题后误用旧选择。
+// 保存用户当前选择的答案和对应题号，防止切题后误用旧选择
 function selectAnswer(answer) {
   selectedAnswer.value = answer;
   selectedQuestionId.value = currentQuestion.value.id;
 }
 
-// 开始新一轮：取题、打乱选项并重置成绩；失败时显示重试提示。
+// 开始新一轮：取题、打乱选项并重置成绩；失败时显示重试提示
 async function loadQuiz() {
   loading.value = true;
   loadError.value = "";
@@ -113,7 +113,7 @@ async function loadQuiz() {
   }
 }
 
-// 未答题时提交答案，已答题时进入下一题；提交中禁止重复点击计分。
+// 未答题时提交答案，已答题时进入下一题；提交中禁止重复点击计分
 async function submit() {
   if (submitting.value || !currentQuestion.value) return;
   if (answered.value) {

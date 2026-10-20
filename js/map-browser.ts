@@ -10,9 +10,8 @@ const NiyunMapBrowser = (function registerMapBrowser() {
             const renderSites = source2.renderSites;
             const updateSitePanel = source2.updateSitePanel;
             const openCurrentSiteArchive = source2.openCurrentSiteArchive;
-            // 地图点位由 app.js 渲染；本模块只负责筛选、选中状态和把操作转给图录模块。
+            // 筛选和选中地图点位，并连接图录入口
             let filterRequest = 0;
-            // 等数据到了再替换地图；快速连点只接受最后一次结果。
             async function filterSites(period: string) {
                 const requestId = ++filterRequest;
                 const root = (document.querySelector("#shandongMap") as HTMLElement);
@@ -27,7 +26,7 @@ const NiyunMapBrowser = (function registerMapBrowser() {
                 }
                 try {
                     const sites = await apiService.getSites(period);
-                    // 快速连点时只展示最后一次筛选，避免旧结果覆盖新结果。
+                    // 快速连点时只展示最后一次筛选，避免旧结果覆盖新结果
                     if (requestId !== filterRequest) {
                         return;
                     }
@@ -62,7 +61,7 @@ const NiyunMapBrowser = (function registerMapBrowser() {
                     }
                 }
             }
-            // 只切换立体或平面显示，不改变行政区域筛选。
+            // 切换地图显示模式，保留当前筛选
             function setMapMode(mode: string) {
                 const root = (document.querySelector("#shandongMap") as HTMLElement);
                 if (!root || !mode) {
